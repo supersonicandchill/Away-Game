@@ -1,163 +1,343 @@
+Awaygame v2 · HTML
+Copy
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
 <meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
 <link rel="preconnect" href="https://fonts.googleapis.com"/>
 <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet"/>
-<title>Away Game — Christian Parent’s Playbook</title>
+<title>Away Game — Christian Parent's Playbook</title>
 <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
 <script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
 <style>
 * { box-sizing: border-box; margin: 0; padding: 0; }
-body { background: #f8f9fa; font-family: 'DM Sans', system-ui, sans-serif; color: #1a1a1a; line-height: 1.6; }
-button { cursor: pointer; }
+html { -webkit-text-size-adjust: 100%; }
+body { background: #f8f9fa; font-family: 'DM Sans', system-ui, sans-serif; color: #1a1a1a; line-height: 1.6; overscroll-behavior: none; }
+button { cursor: pointer; font-family: inherit; -webkit-tap-highlight-color: transparent; }
+input, textarea, select { font-family: inherit; }
 .progress-bar { height: 10px; background: #e9ecef; border-radius: 9999px; overflow: hidden; }
 .progress-fill { height: 100%; transition: width 0.5s ease; }
-.team-card { background: #fff; border: 1px solid #dee2e6; border-radius: 16px; padding: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.06); }
-.delete-btn { background: #fee2e2; color: #ef4444; border: none; width: 32px; height: 32px; border-radius: 8px; font-size: 18px; }
+.delete-btn { background: #fee2e2; color: #ef4444; border: none; width: 36px; height: 36px; border-radius: 8px; font-size: 18px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
+.nav-btn { padding: 9px 14px; border-radius: 10px; font-weight: 700; font-size: 13px; border: 2px solid #ff8c00; transition: background 0.15s; white-space: nowrap; }
+@media (max-width: 480px) {
+  .nav-btn { padding: 8px 10px; font-size: 12px; }
+  .hide-mobile { display: none !important; }
+  .modal-inner { width: 100% !important; max-width: 100% !important; border-radius: 16px 16px 0 0 !important; max-height: 94vh !important; margin-top: auto; }
+  .modal-wrap { align-items: flex-end !important; }
+}
 </style>
 </head>
 <body>
 <div id="root"></div>
 <script type="text/babel" data-presets="react">
-const { useState } = React;
-
+const { useState, useEffect } = React;
+ 
 // ─── STORAGE ──────────────────────────────────────────────────────────────────
 function load(key, fb) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fb; } catch { return fb; } }
 function save(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} }
 let _c = Date.now();
 function uid() { return "x" + (++_c).toString(36); }
-
+ 
 // ─── COLORS ───────────────────────────────────────────────────────────────────
 const C = {
   bg0: "#f8f9fa", bg1: "#ffffff", bg2: "#f1f3f5", bg3: "#e9ecef",
   border: "#dee2e6", borderHi: "#ff8c00",
   text: "#1a1a1a", textSub: "#495057", textMuted: "#6c757d",
-  orange: "#ff8c00", green: "#00b36b"
+  orange: "#ff8c00", green: "#00b36b", red: "#ef4444"
 };
-
-// ─── VIRTUES (Complete) ───────────────────────────────────────────────────────
+ 
+// ─── VIRTUES ──────────────────────────────────────────────────────────────────
 const VIRTUES = {
-  L: { key:"L", label:"Love", icon:"❤️", tagline:"Others-first in a me-first culture", color:"#ff4d4d", bg:"#fff0f0", border:"#ff8c00",
-       scoreMeaning: "0=Never • 1=Rarely • 2=Sometimes • 3=Consistently puts others first",
-       strong: ["Celebrates teammates' success", "Shows genuine kindness", "Puts team above self"],
-       weak:   ["Selfish on and off the field", "Dismisses or ignores teammates", "Only cheers for own highlights"],
-       develop: ["After each game, name one teammate who helped you win", "Do one act of encouragement before you leave the field", "Pray: 'Lord, help me love my teammates the way You love me'"] },
-  P: { key:"P", label:"Peace", icon:"☮️", tagline:"Calm anchored in Christ", color:"#00b36b", bg:"#f0fff4", border:"#ff8c00",
-       scoreMeaning: "0=Constant anxiety • 1=Occasional calm • 2=Usually calm • 3=Peace that guards the heart",
-       strong: ["Stays composed under pressure", "Calms teammates in tense moments", "Bounces back quickly from mistakes"],
-       weak:   ["Anxious or panicked when things go wrong", "Spreads tension to teammates", "Dwells on errors during play"],
-       develop: ["Practice three slow breaths before any big moment", "Write down one worry this week and give it to God in prayer", "Memorize Phil. 4:7 — let it anchor your pregame routine"] },
-  S: { key:"S", label:"Self-Control", icon:"🛡️", tagline:"Responding instead of reacting", color:"#0077cc", bg:"#f0f8ff", border:"#ff8c00",
-       scoreMeaning: "0=Frequent outbursts • 1=Improving • 2=Usually controlled • 3=Strong self-discipline",
-       strong: ["Responds to bad calls without blowing up", "Keeps emotions in check under provocation", "Leads by example in discipline"],
-       weak:   ["Frequent outbursts or meltdowns", "Argues with officials or coaches", "Lets frustration hurt performance"],
-       develop: ["Identify your #1 trigger — name it, then make a plan for it", "After a bad call, count to 5 before you react", "Ask a trusted teammate to hold you accountable this week"] },
-  G: { key:"G", label:"Gentleness", icon:"🌿", tagline:"Strength under control", color:"#9c4dff", bg:"#f8f0ff", border:"#ff8c00",
-       scoreMeaning: "0=Often harsh • 1=Sometimes gentle • 2=Usually gentle • 3=Strength under control",
-       strong: ["Encourages struggling teammates", "Competes hard without being cruel", "Uses words that build up, not tear down"],
-       weak:   ["Often harsh or cutting with words", "Intimidates or belittles others", "Confuses meanness with toughness"],
-       develop: ["Before criticizing a teammate, ask: 'Is this kind AND true?'", "Find one struggling player this week and intentionally encourage them", "Journal: where did strength AND gentleness show up together today?"] },
-  H: { key:"H", label:"Humility", icon:"🙏", tagline:"Playing from identity, not for identity", color:"#ff8c00", bg:"#fff8f0", border:"#ff8c00",
-       scoreMeaning: "0=Very prideful • 1=Occasional humility • 2=Growing humility • 3=Consistently humble",
-       strong: ["Credits teammates and coaches for success", "Accepts coaching without defensiveness", "Secure enough to celebrate others"],
-       weak:   ["Takes credit, deflects blame", "Gets defensive when corrected", "Needs to be the star"],
-       develop: ["After your next win, publicly credit two specific teammates", "When corrected by a coach, respond: 'Thank you, I'll work on that'", "Ask yourself: 'Am I playing TO prove something or FROM knowing who I am?'"] },
-  Gr: { key:"Gr", label:"Gratitude", icon:"🙌", tagline:"Thankful in all circumstances", color:"#ffaa00", bg:"#fffdf0", border:"#ff8c00",
-       scoreMeaning: "0=Very entitled • 1=Occasional thanks • 2=Usually grateful • 3=Thankful in all circumstances",
-       strong: ["Thanks coaches, officials, and opponents", "Grateful for the opportunity to compete", "Positive attitude win or lose"],
-       weak:   ["Entitled attitude about playing time or roles", "Rarely thanks others", "Complains about conditions, calls, or teammates"],
-       develop: ["Start every practice with one thing you're grateful for about this team", "Write a one-line thank-you to a coach or teammate this week", "After a loss, find three genuine things to be thankful for before you leave"] },
-  J: { key:"J", label:"Joy", icon:"🎉", tagline:"Delight that outlasts the score", color:"#ff6600", bg:"#fff4f0", border:"#ff8c00",
-       scoreMeaning: "0=Joy is gone • 1=Rare joy • 2=Usually joyful • 3=Consistent delight",
-       strong: ["Genuine enjoyment of the game", "Joy that doesn't depend on the scoreboard", "Lifts the energy of those around them"],
-       weak:   ["Only happy when winning", "Drains team energy with negativity", "Has lost the love of the game"],
-       develop: ["Recall why you first fell in love with this sport — write it down", "Find one moment in each practice to just enjoy the game", "Remind yourself: the scoreboard is temporary, but who you're becoming is not"] }
+  L:  { key:"L",  label:"Love",         icon:"❤️",  tagline:"Others-first in a me-first culture",    color:"#ff4d4d", bg:"#fff0f0", border:"#ff8c00",
+        scoreMeaning:"0=Never • 1=Rarely • 2=Sometimes • 3=Consistently puts others first",
+        strong:["Celebrates teammates' success","Shows genuine kindness","Puts team above self"],
+        weak:  ["Selfish on and off the field","Dismisses or ignores teammates","Only cheers for own highlights"],
+        develop:["After each game, name one teammate who helped you win","Do one act of encouragement before you leave the field","Pray: 'Lord, help me love my teammates the way You love me'"] },
+  P:  { key:"P",  label:"Peace",        icon:"☮️",  tagline:"Calm anchored in Christ",               color:"#00b36b", bg:"#f0fff4", border:"#ff8c00",
+        scoreMeaning:"0=Constant anxiety • 1=Occasional calm • 2=Usually calm • 3=Peace that guards the heart",
+        strong:["Stays composed under pressure","Calms teammates in tense moments","Bounces back quickly from mistakes"],
+        weak:  ["Anxious or panicked when things go wrong","Spreads tension to teammates","Dwells on errors during play"],
+        develop:["Practice three slow breaths before any big moment","Write down one worry this week and give it to God in prayer","Memorize Phil. 4:7 — let it anchor your pregame routine"] },
+  S:  { key:"S",  label:"Self-Control", icon:"🛡️", tagline:"Responding instead of reacting",        color:"#0077cc", bg:"#f0f8ff", border:"#ff8c00",
+        scoreMeaning:"0=Frequent outbursts • 1=Improving • 2=Usually controlled • 3=Strong self-discipline",
+        strong:["Responds to bad calls without blowing up","Keeps emotions in check under provocation","Leads by example in discipline"],
+        weak:  ["Frequent outbursts or meltdowns","Argues with officials or coaches","Lets frustration hurt performance"],
+        develop:["Identify your #1 trigger — name it, then make a plan for it","After a bad call, count to 5 before you react","Ask a trusted teammate to hold you accountable this week"] },
+  G:  { key:"G",  label:"Gentleness",   icon:"🌿",  tagline:"Strength under control",               color:"#9c4dff", bg:"#f8f0ff", border:"#ff8c00",
+        scoreMeaning:"0=Often harsh • 1=Sometimes gentle • 2=Usually gentle • 3=Strength under control",
+        strong:["Encourages struggling teammates","Competes hard without being cruel","Uses words that build up, not tear down"],
+        weak:  ["Often harsh or cutting with words","Intimidates or belittles others","Confuses meanness with toughness"],
+        develop:["Before criticizing a teammate, ask: 'Is this kind AND true?'","Find one struggling player this week and intentionally encourage them","Journal: where did strength AND gentleness show up together today?"] },
+  H:  { key:"H",  label:"Humility",     icon:"🙏",  tagline:"Playing from identity, not for identity", color:"#ff8c00", bg:"#fff8f0", border:"#ff8c00",
+        scoreMeaning:"0=Very prideful • 1=Occasional humility • 2=Growing humility • 3=Consistently humble",
+        strong:["Credits teammates and coaches for success","Accepts coaching without defensiveness","Secure enough to celebrate others"],
+        weak:  ["Takes credit, deflects blame","Gets defensive when corrected","Needs to be the star"],
+        develop:["After your next win, publicly credit two specific teammates","When corrected by a coach, respond: 'Thank you, I'll work on that'","Ask yourself: 'Am I playing TO prove something or FROM knowing who I am?'"] },
+  Gr: { key:"Gr", label:"Gratitude",    icon:"🙌",  tagline:"Thankful in all circumstances",         color:"#ffaa00", bg:"#fffdf0", border:"#ff8c00",
+        scoreMeaning:"0=Very entitled • 1=Occasional thanks • 2=Usually grateful • 3=Thankful in all circumstances",
+        strong:["Thanks coaches, officials, and opponents","Grateful for the opportunity to compete","Positive attitude win or lose"],
+        weak:  ["Entitled attitude about playing time or roles","Rarely thanks others","Complains about conditions, calls, or teammates"],
+        develop:["Start every practice with one thing you're grateful for about this team","Write a one-line thank-you to a coach or teammate this week","After a loss, find three genuine things to be thankful for before you leave"] },
+  J:  { key:"J",  label:"Joy",          icon:"🎉",  tagline:"Delight that outlasts the score",       color:"#ff6600", bg:"#fff4f0", border:"#ff8c00",
+        scoreMeaning:"0=Joy is gone • 1=Rare joy • 2=Usually joyful • 3=Consistent delight",
+        strong:["Genuine enjoyment of the game","Joy that doesn't depend on the scoreboard","Lifts the energy of those around them"],
+        weak:  ["Only happy when winning","Drains team energy with negativity","Has lost the love of the game"],
+        develop:["Recall why you first fell in love with this sport — write it down","Find one moment in each practice to just enjoy the game","Remind yourself: the scoreboard is temporary, but who you're becoming is not"] }
 };
-
-const SCORE_LABELS = ["Missing", "Emerging", "Developing", "Strong"];
-
+ 
+const SCORE_LABELS = ["Missing","Emerging","Developing","Strong"];
+const BLANK_ATHLETE = { id:"", name:"", role:"", notes:"", scores:{L:1,P:1,S:1,G:1,H:1,Gr:1,J:1}, lastUpdated:null };
+ 
 // ─── HELPERS ──────────────────────────────────────────────────────────────────
 function getCombo(scores) {
-  const strong = Object.values(scores).filter(v => v === 3).length;
+  const strong    = Object.values(scores).filter(v => v === 3).length;
   const developing = Object.values(scores).filter(v => v >= 2).length;
-  const avg = (Object.values(scores).reduce((a,b) => a + b, 0) / 7).toFixed(1);
-
-  if (strong >= 5) return { label: "Kingdom Competitor", icon: "🏆", desc: `Avg ${avg}/3`, color: C.orange, progress: 95 };
-  if (developing >= 6) return { label: "Strong Disciple", icon: "🌟", desc: `Avg ${avg}/3`, color: C.green, progress: 85 };
-  return { label: "Developing Disciple", icon: "🌱", desc: `Avg ${avg}/3`, color: "#fd7e14", progress: Math.round(developing / 7 * 100) };
+  const avg = (Object.values(scores).reduce((a,b)=>a+b,0)/7).toFixed(1);
+  if (strong >= 5)     return { label:"Kingdom Competitor", icon:"🏆", color:C.orange, progress:95,  avg };
+  if (developing >= 6) return { label:"Strong Disciple",    icon:"🌟", color:C.green,  progress:85,  avg };
+  return { label:"Developing Disciple", icon:"🌱", color:"#fd7e14", progress:Math.round(developing/7*100), avg };
 }
-
-function calculateTeamProgress(athletes) {
-  if (athletes.length === 0) return { avgScore: "0.0", strongPercent: 0, totalAthletes: 0 };
-  let totalScore = 0, totalStrong = 0;
-  const totalVirtues = athletes.length * 7;
-
+ 
+function calcTeamStats(athletes) {
+  if (!athletes.length) return { avgScore:"0.0", strongPercent:0, totalAthletes:0 };
+  let totalScore=0, totalStrong=0;
+  const totalV = athletes.length * 7;
   athletes.forEach(a => {
-    const scores = Object.values(a.scores || {});
-    totalScore += scores.reduce((a,b) => a + b, 0);
-    totalStrong += scores.filter(v => v === 3).length;
+    const s = Object.values(a.scores||{});
+    totalScore += s.reduce((a,b)=>a+b,0);
+    totalStrong += s.filter(v=>v===3).length;
   });
-
-  const avgScore = (totalScore / totalVirtues).toFixed(1);
-  const strongPercent = Math.round((totalStrong / totalVirtues) * 100);
-
-  return { avgScore, strongPercent, totalAthletes: athletes.length };
+  return { avgScore:(totalScore/totalV).toFixed(1), strongPercent:Math.round(totalStrong/totalV*100), totalAthletes:athletes.length };
 }
-
-// ─── MODALS ───────────────────────────────────────────────────────────────────
-function Modal({title, onClose, children}) {
+ 
+function progressBg(pct) {
+  return pct > 80 ? "linear-gradient(90deg,#00b36b,#34d399)" : pct > 50 ? "linear-gradient(90deg,#ff8c00,#ffaa00)" : "#dc3545";
+}
+ 
+// ─── MODAL ────────────────────────────────────────────────────────────────────
+function Modal({ title, onClose, children, wide }) {
+  useEffect(() => {
+    document.body.style.overflow = "hidden";
+    return () => { document.body.style.overflow = ""; };
+  }, []);
   return (
-    <div style={{position:"fixed", inset:0, background:"rgba(0,0,0,0.75)", zIndex:500, display:"flex", alignItems:"center", justifyContent:"center"}} onClick={e=>e.target===e.currentTarget&&onClose()}>
-      <div style={{background:"#fff", borderRadius:16, width:"92%", maxWidth:720, maxHeight:"92vh", overflow:"hidden", boxShadow:"0 25px 70px rgba(0,0,0,0.25)"}}>
-        <div style={{padding:"18px 24px", borderBottom:"1px solid #dee2e6", display:"flex", justifyContent:"space-between", alignItems:"center"}}>
-          <span style={{fontSize:21, fontWeight:800, color:C.orange}}>{title}</span>
-          <button onClick={onClose} style={{fontSize:24, background:"none", border:"none", color:"#666"}}>✕</button>
+    <div className="modal-wrap" style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.75)",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center"}}
+         onClick={e=>e.target===e.currentTarget&&onClose()}>
+      <div className="modal-inner" style={{background:"#fff",borderRadius:16,width:"94%",maxWidth:wide?760:560,maxHeight:"92vh",overflow:"hidden",boxShadow:"0 25px 70px rgba(0,0,0,0.3)",display:"flex",flexDirection:"column"}}>
+        <div style={{padding:"16px 20px",borderBottom:`1px solid ${C.border}`,display:"flex",justifyContent:"space-between",alignItems:"center",flexShrink:0}}>
+          <span style={{fontSize:20,fontWeight:800,color:C.orange}}>{title}</span>
+          <button onClick={onClose} style={{fontSize:24,background:"none",border:"none",color:"#666",lineHeight:1,padding:"0 4px"}}>✕</button>
         </div>
-        <div style={{padding:24, overflowY:"auto", maxHeight:"78vh"}}>{children}</div>
+        <div style={{padding:20,overflowY:"auto",flex:1}}>{children}</div>
       </div>
     </div>
   );
 }
-
-function ConfirmDelete({name, onConfirm, onCancel}) {
+ 
+// ─── CONFIRM MODAL ────────────────────────────────────────────────────────────
+function ConfirmModal({ title, message, warning, confirmLabel, confirmColor, onConfirm, onCancel }) {
   return (
-    <Modal title="Delete Athlete" onClose={onCancel}>
-      <p style={{fontSize:16, marginBottom:24}}>Are you sure you want to permanently delete <strong>{name}</strong>?</p>
-      <p style={{color:"#ef4444", marginBottom:24}}>This cannot be undone.</p>
-      <div style={{display:"flex", gap:12, justifyContent:"flex-end"}}>
-        <button onClick={onCancel} style={{padding:"12px 24px", border:"none", background:"#ddd", borderRadius:10}}>Cancel</button>
-        <button onClick={onConfirm} style={{padding:"12px 28px", border:"none", background:"#ef4444", color:"#fff", borderRadius:10, fontWeight:700}}>Yes, Delete</button>
+    <Modal title={title} onClose={onCancel}>
+      <p style={{fontSize:16,marginBottom:16}}>{message}</p>
+      {warning && <p style={{color:C.red,marginBottom:24,fontWeight:600}}>{warning}</p>}
+      <div style={{display:"flex",gap:12,justifyContent:"flex-end",flexWrap:"wrap"}}>
+        <button onClick={onCancel} style={{padding:"12px 24px",border:"none",background:"#ddd",borderRadius:10,fontWeight:700}}>Cancel</button>
+        <button onClick={onConfirm} style={{padding:"12px 28px",border:"none",background:confirmColor||C.red,color:"#fff",borderRadius:10,fontWeight:700}}>{confirmLabel||"Confirm"}</button>
       </div>
     </Modal>
   );
 }
-
-// ─── EDIT MODAL ───────────────────────────────────────────────────────────────
-function EditModal({person, onSave, onClose}) {
-  const [data, setData] = useState({...person, notes: person.notes || ""});
-
-  const updateScore = (key, value) => setData(prev => ({...prev, scores: {...prev.scores, [key]: Number(value)}}));
-
+ 
+// ─── INSTRUCTIONS MODAL ───────────────────────────────────────────────────────
+function HelpModal({ onClose }) {
+  const [tab, setTab] = useState("start");
+  const tabs = [
+    { id:"start",  label:"🏁 Getting Started" },
+    { id:"teams",  label:"👥 Teams" },
+    { id:"athletes", label:"🏃 Athletes" },
+    { id:"virtues", label:"✝️ The Seven Virtues" },
+    { id:"scoring", label:"📊 Scoring" },
+  ];
   return (
-    <Modal title={data.id ? "Edit Athlete" : "Add New Athlete"} onClose={onClose}>
-      <input placeholder="Athlete Name *" value={data.name||""} onChange={e=>setData({...data,name:e.target.value})} style={{width:"100%", padding:14, fontSize:17, border:`2px solid ${C.border}`, borderRadius:10, marginBottom:12}} />
-      <input placeholder="Role / Team (optional)" value={data.role||""} onChange={e=>setData({...data,role:e.target.value})} style={{width:"100%", padding:14, fontSize:17, border:`2px solid ${C.border}`, borderRadius:10, marginBottom:20}} />
-
-      <div style={{marginBottom:20}}>
-        <div style={{fontWeight:700, color:C.orange, marginBottom:12}}>Score Each Virtue (0–3)</div>
-        {Object.values(VIRTUES).map(t => (
-          <div key={t.key} style={{marginBottom:16, padding:16, background:"#fff", border:`1px solid ${t.border}`, borderRadius:12}}>
-            <div style={{display:"flex", alignItems:"center", gap:12, marginBottom:8}}>
-              <span style={{fontSize:28}}>{t.icon}</span>
-              <div style={{flex:1, fontWeight:700, color:t.color}}>{t.label}</div>
+    <Modal title="How to Use Away Game" onClose={onClose} wide>
+      <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:20}}>
+        {tabs.map(t => (
+          <button key={t.id} onClick={()=>setTab(t.id)}
+            style={{padding:"8px 14px",borderRadius:20,border:`2px solid ${tab===t.id?C.orange:C.border}`,
+              background:tab===t.id?C.orange:"#fff",color:tab===t.id?"#fff":C.text,fontWeight:700,fontSize:13}}>
+            {t.label}
+          </button>
+        ))}
+      </div>
+ 
+      {tab==="start" && (
+        <div>
+          <p style={{fontSize:16,marginBottom:16}}>
+            <strong>Away Game</strong> is a character-tracking tool for Christian coaches and parents. It helps you see the whole athlete — not just their stats, but their soul.
+          </p>
+          <HelpStep n={1} title="Create a Team">
+            Tap <strong>+ New Team</strong> in the team selector at the top. Name it after your squad (e.g., "14U Blue Jays"). You can run multiple teams at once.
+          </HelpStep>
+          <HelpStep n={2} title="Add Athletes">
+            Inside a team, tap <strong>+ Add Athlete</strong>. Enter the player's name and optional position/role. Score them on each of the 7 virtues.
+          </HelpStep>
+          <HelpStep n={3} title="Review & Develop">
+            Tap any athlete card to open their full profile. Use the <strong>Profile</strong>, <strong>Develop</strong>, and <strong>Notes</strong> tabs to assess, plan, and pray.
+          </HelpStep>
+          <HelpStep n={4} title="Track Progress Over Time">
+            Update scores after games, practices, or key moments. The "Last Updated" timestamp on each card keeps you honest.
+          </HelpStep>
+          <div style={{background:"#fff8f0",border:"2px solid #ff8c00",borderRadius:12,padding:16,marginTop:20}}>
+            <div style={{fontWeight:700,color:C.orange,marginBottom:6}}>⚡ Quick Tips</div>
+            <ul style={{paddingLeft:20,fontSize:14,color:C.textSub,lineHeight:2}}>
+              <li>Tap a card to view the full profile — swipe or scroll inside the modal</li>
+              <li>Long press on a player card shows the edit option</li>
+              <li>All data is saved locally on your device — no account needed</li>
+              <li>Add athletes to multiple teams by moving them from one roster to another</li>
+            </ul>
+          </div>
+        </div>
+      )}
+ 
+      {tab==="teams" && (
+        <div>
+          <p style={{marginBottom:16,color:C.textSub}}>You can manage as many teams as you need — travel squad, rec league, school team, even a small group.</p>
+          <InfoCard icon="➕" title="Creating a Team">
+            Tap the team name at the top of the screen, then <strong>+ New Team</strong>. Give it a name and you're in.
+          </InfoCard>
+          <InfoCard icon="✏️" title="Renaming a Team">
+            From the team dropdown, tap the <strong>✏ Edit</strong> icon next to the team name. You can rename it anytime.
+          </InfoCard>
+          <InfoCard icon="🔀" title="Moving an Athlete Between Teams">
+            Open the athlete's profile and tap <strong>✏ Edit</strong>. At the bottom of the edit form, use <strong>Move to Team</strong> to reassign them. Their scores and notes travel with them.
+          </InfoCard>
+          <InfoCard icon="🗑️" title="Deleting a Team">
+            In the team dropdown, tap the trash icon. You'll be asked to confirm. <strong>Deleting a team removes all athletes on that team</strong> — make sure you move any players you want to keep first.
+          </InfoCard>
+        </div>
+      )}
+ 
+      {tab==="athletes" && (
+        <div>
+          <InfoCard icon="➕" title="Adding an Athlete">
+            Tap <strong>+ Add Athlete</strong> on the main roster screen. Fill in their name, optional position, and score each of the 7 virtues from 0–3.
+          </InfoCard>
+          <InfoCard icon="📋" title="Viewing a Profile">
+            Tap any player card to open the full profile modal. Three tabs inside: <strong>Profile</strong> (current virtue breakdown), <strong>Develop</strong> (action steps), and <strong>Notes</strong> (your observations and prayers).
+          </InfoCard>
+          <InfoCard icon="✏️" title="Editing an Athlete">
+            From the player card, tap the <strong>✏ Edit</strong> button, or open the profile and tap Edit from there. You can update scores, name, role, and notes.
+          </InfoCard>
+          <InfoCard icon="🔀" title="Moving to Another Team">
+            Inside the edit form, scroll to the bottom and use the <strong>Move to Team</strong> dropdown. Select a destination team and save.
+          </InfoCard>
+          <InfoCard icon="🗑️" title="Deleting an Athlete">
+            Tap the 🗑 button on any player card. You will be asked to confirm before anything is deleted.
+          </InfoCard>
+        </div>
+      )}
+ 
+      {tab==="virtues" && (
+        <div>
+          <p style={{marginBottom:16,color:C.textSub,fontSize:15}}>
+            The seven virtues are drawn from the Fruit of the Spirit (Galatians 5:22–23), adapted for the competitive sports context. They measure character, not performance.
+          </p>
+          {Object.values(VIRTUES).map(v => (
+            <div key={v.key} style={{display:"flex",gap:14,marginBottom:16,padding:14,background:v.bg,borderRadius:12,border:`1px solid ${C.border}`}}>
+              <span style={{fontSize:32,lineHeight:1}}>{v.icon}</span>
+              <div>
+                <div style={{fontWeight:800,color:v.color,fontSize:16}}>{v.label}</div>
+                <div style={{fontSize:13,color:C.textSub,fontStyle:"italic",marginBottom:4}}>"{v.tagline}"</div>
+                <div style={{fontSize:12,color:C.textMuted}}>{v.scoreMeaning}</div>
+              </div>
             </div>
-            <div style={{fontSize:13, color:"#555", marginBottom:10}}>{t.scoreMeaning}</div>
-            <div style={{display:"flex", gap:6}}>
+          ))}
+        </div>
+      )}
+ 
+      {tab==="scoring" && (
+        <div>
+          <p style={{marginBottom:20,color:C.textSub}}>Each virtue is scored on a simple 0–3 scale. The goal isn't to grade kids — it's to give you a starting point for conversations and prayer.</p>
+          {[
+            { n:0, label:"Missing",   color:"#dc3545", desc:"This virtue is largely absent right now. Not a judgment — a starting point." },
+            { n:1, label:"Emerging",  color:"#fd7e14", desc:"You see glimpses. They're growing. Encourage what you do see." },
+            { n:2, label:"Developing",color:C.orange,  desc:"This is becoming a pattern. Reinforce and give it more room to grow." },
+            { n:3, label:"Strong",    color:C.green,   desc:"This virtue is consistently on display. Affirm it and help them own it." },
+          ].map(s => (
+            <div key={s.n} style={{display:"flex",gap:16,marginBottom:16,alignItems:"flex-start"}}>
+              <div style={{background:s.color,color:"#fff",borderRadius:10,width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:18,flexShrink:0}}>{s.n}</div>
+              <div>
+                <div style={{fontWeight:700,fontSize:16}}>{s.label}</div>
+                <div style={{fontSize:14,color:C.textSub}}>{s.desc}</div>
+              </div>
+            </div>
+          ))}
+          <div style={{background:"#f0fff4",border:`2px solid ${C.green}`,borderRadius:12,padding:16,marginTop:8}}>
+            <div style={{fontWeight:700,color:C.green,marginBottom:6}}>🏆 Team Ratings</div>
+            <div style={{fontSize:14,color:C.textSub,lineHeight:1.8}}>
+              <strong>Kingdom Competitor</strong> — 5+ virtues at level 3<br/>
+              <strong>Strong Disciple</strong> — 6+ virtues at level 2 or higher<br/>
+              <strong>Developing Disciple</strong> — Still growing across the board
+            </div>
+          </div>
+        </div>
+      )}
+    </Modal>
+  );
+}
+ 
+function HelpStep({ n, title, children }) {
+  return (
+    <div style={{display:"flex",gap:14,marginBottom:16,alignItems:"flex-start"}}>
+      <div style={{background:C.orange,color:"#fff",borderRadius:"50%",width:30,height:30,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:14,flexShrink:0}}>{n}</div>
+      <div><div style={{fontWeight:700,marginBottom:2}}>{title}</div><div style={{fontSize:14,color:C.textSub}}>{children}</div></div>
+    </div>
+  );
+}
+ 
+function InfoCard({ icon, title, children }) {
+  return (
+    <div style={{marginBottom:16,padding:16,background:"#fff",border:`1px solid ${C.border}`,borderRadius:12}}>
+      <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:6}}>
+        <span style={{fontSize:20}}>{icon}</span>
+        <div style={{fontWeight:700,fontSize:15}}>{title}</div>
+      </div>
+      <div style={{fontSize:14,color:C.textSub,lineHeight:1.6}}>{children}</div>
+    </div>
+  );
+}
+ 
+// ─── EDIT ATHLETE MODAL ───────────────────────────────────────────────────────
+function EditModal({ person, teams, currentTeamId, onSave, onClose }) {
+  const [data, setData] = useState({ ...person, notes: person.notes||"", teamId: currentTeamId });
+  const updateScore = (key, value) => setData(prev => ({ ...prev, scores: { ...prev.scores, [key]: Number(value) } }));
+ 
+  return (
+    <Modal title={data.id ? "Edit Athlete" : "Add New Athlete"} onClose={onClose} wide>
+      <input placeholder="Athlete Name *" value={data.name||""} onChange={e=>setData({...data,name:e.target.value})}
+        style={{width:"100%",padding:14,fontSize:16,border:`2px solid ${C.border}`,borderRadius:10,marginBottom:12}} />
+      <input placeholder="Position / Role (optional)" value={data.role||""} onChange={e=>setData({...data,role:e.target.value})}
+        style={{width:"100%",padding:14,fontSize:16,border:`2px solid ${C.border}`,borderRadius:10,marginBottom:20}} />
+ 
+      <div style={{marginBottom:20}}>
+        <div style={{fontWeight:700,color:C.orange,marginBottom:12}}>Score Each Virtue (0–3)</div>
+        {Object.values(VIRTUES).map(t => (
+          <div key={t.key} style={{marginBottom:14,padding:14,background:"#fafafa",border:`1px solid ${C.border}`,borderRadius:12}}>
+            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
+              <span style={{fontSize:24}}>{t.icon}</span>
+              <div style={{flex:1,fontWeight:700,color:t.color,fontSize:15}}>{t.label}</div>
+              <span style={{fontSize:12,color:C.textMuted,background:"#fff",padding:"2px 8px",borderRadius:10,border:`1px solid ${C.border}`}}>{SCORE_LABELS[data.scores[t.key]]}</span>
+            </div>
+            <div style={{fontSize:12,color:"#555",marginBottom:8}}>{t.scoreMeaning}</div>
+            <div style={{display:"flex",gap:6}}>
               {[0,1,2,3].map(n => (
-                <button key={n} onClick={()=>updateScore(t.key,n)} style={{flex:1, padding:"10px", borderRadius:8, background: data.scores[t.key]===n ? C.orange : "#f1f3f5", color: data.scores[t.key]===n ? "#fff" : "#333", fontWeight:700}}>
+                <button key={n} onClick={()=>updateScore(t.key,n)}
+                  style={{flex:1,padding:"10px 4px",borderRadius:8,border:"none",
+                    background:data.scores[t.key]===n?C.orange:"#f1f3f5",
+                    color:data.scores[t.key]===n?"#fff":"#333",fontWeight:700,fontSize:15}}>
                   {n}
                 </button>
               ))}
@@ -165,217 +345,382 @@ function EditModal({person, onSave, onClose}) {
           </div>
         ))}
       </div>
-
+ 
       <div style={{marginBottom:20}}>
-        <div style={{fontWeight:700, marginBottom:8}}>Notes / Observations / Prayers</div>
-        <textarea value={data.notes} onChange={e=>setData({...data, notes:e.target.value})} placeholder="Key moments, growth areas, specific prayers..." style={{width:"100%", height:130, padding:14, border:`2px solid ${C.border}`, borderRadius:10, resize:"vertical"}} />
+        <div style={{fontWeight:700,marginBottom:8}}>Notes / Observations / Prayers</div>
+        <textarea value={data.notes} onChange={e=>setData({...data,notes:e.target.value})}
+          placeholder="Key moments, growth areas, specific prayers..."
+          style={{width:"100%",height:110,padding:14,border:`2px solid ${C.border}`,borderRadius:10,resize:"vertical",fontSize:14}} />
       </div>
-
-      <div style={{display:"flex", gap:12, justifyContent:"flex-end"}}>
-        <button onClick={onClose} style={{padding:"12px 24px", border:"none", background:"#ddd", borderRadius:10}}>Cancel</button>
-        <button onClick={()=>onSave(data)} style={{padding:"12px 32px", border:"none", background:C.orange, color:"#fff", borderRadius:10, fontWeight:700}} disabled={!data.name?.trim()}>💾 Save Changes</button>
+ 
+      {teams.length > 1 && (
+        <div style={{marginBottom:20}}>
+          <div style={{fontWeight:700,marginBottom:8}}>Team Assignment</div>
+          <select value={data.teamId} onChange={e=>setData({...data,teamId:e.target.value})}
+            style={{width:"100%",padding:12,fontSize:15,border:`2px solid ${C.border}`,borderRadius:10,background:"#fff"}}>
+            {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
+          </select>
+          {data.teamId !== currentTeamId && (
+            <div style={{marginTop:8,fontSize:13,color:C.orange,fontWeight:600}}>⚡ This athlete will be moved to the selected team on save.</div>
+          )}
+        </div>
+      )}
+ 
+      <div style={{display:"flex",gap:12,justifyContent:"flex-end",flexWrap:"wrap"}}>
+        <button onClick={onClose} style={{padding:"12px 24px",border:"none",background:"#ddd",borderRadius:10,fontWeight:700}}>Cancel</button>
+        <button onClick={()=>onSave(data)} disabled={!data.name?.trim()}
+          style={{padding:"12px 32px",border:"none",background:data.name?.trim()?C.orange:"#ccc",color:"#fff",borderRadius:10,fontWeight:700}}>
+          💾 Save
+        </button>
       </div>
     </Modal>
   );
 }
-
-// ─── PERSON DETAIL ────────────────────────────────────────────────────────────
-function PersonDetail({person, onClose, onEdit}) {
+ 
+// ─── PERSON DETAIL MODAL ──────────────────────────────────────────────────────
+function PersonDetail({ person, onClose, onEdit, onDelete }) {
   const [tab, setTab] = useState("assess");
   const combo = getCombo(person.scores);
-
   return (
-    <Modal title={person.name} onClose={onClose}>
-      <div style={{display:"flex", justifyContent:"space-between", marginBottom:20}}>
+    <Modal title={person.name} onClose={onClose} wide>
+      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:16,gap:12}}>
         <div>
-          <div style={{fontSize:52}}>{combo.icon}</div>
-          <div style={{fontSize:24, fontWeight:800, color:combo.color}}>{combo.label}</div>
+          <div style={{fontSize:42,lineHeight:1}}>{combo.icon}</div>
+          <div style={{fontSize:20,fontWeight:800,color:combo.color,marginTop:4}}>{combo.label}</div>
+          <div style={{fontSize:13,color:C.textMuted}}>Avg {combo.avg}/3</div>
         </div>
-        <button onClick={()=>{ onEdit(person); onClose(); }} style={{background:C.orange, color:"#fff", border:"none", padding:"10px 22px", borderRadius:10, fontWeight:700}}>✏ Edit</button>
+        <div style={{display:"flex",gap:8,flexShrink:0}}>
+          <button onClick={()=>{ onEdit(person); onClose(); }}
+            style={{background:C.orange,color:"#fff",border:"none",padding:"10px 18px",borderRadius:10,fontWeight:700,fontSize:14}}>✏ Edit</button>
+          <button onClick={onDelete}
+            style={{background:"#fee2e2",color:C.red,border:"none",padding:"10px 14px",borderRadius:10,fontWeight:700,fontSize:14}}>🗑</button>
+        </div>
       </div>
-
-      <div style={{marginBottom:24}}>
-        <div style={{display:"flex", justifyContent:"space-between", fontSize:14, marginBottom:8}}>
-          <span>Character Progress</span>
-          <span>{combo.progress}%</span>
+ 
+      <div style={{marginBottom:16}}>
+        <div style={{display:"flex",justifyContent:"space-between",fontSize:13,marginBottom:6}}>
+          <span style={{color:C.textMuted}}>Character Progress</span>
+          <span style={{fontWeight:700}}>{combo.progress}%</span>
         </div>
         <div className="progress-bar">
-          <div className="progress-fill" style={{width: `${combo.progress}%`, background: combo.progress > 80 ? "linear-gradient(90deg,#00b36b,#34d399)" : combo.progress > 50 ? "linear-gradient(90deg,#ff8c00,#ffaa00)" : "#dc3545"}} />
+          <div className="progress-fill" style={{width:`${combo.progress}%`,background:progressBg(combo.progress)}} />
         </div>
-        <div style={{fontSize:13, color:C.textMuted, marginTop:6}}>
+        <div style={{fontSize:12,color:C.textMuted,marginTop:4}}>
           Last updated: {person.lastUpdated ? new Date(person.lastUpdated).toLocaleDateString() : "Never"}
         </div>
       </div>
-
-      <div style={{display:"flex", borderBottom:"3px solid #ff8c00", marginBottom:20}}>
+ 
+      <div style={{display:"flex",borderBottom:`3px solid ${C.orange}`,marginBottom:16}}>
         {["assess","develop","notes"].map(t => (
-          <button key={t} onClick={()=>setTab(t)} style={{flex:1, padding:"14px", fontWeight:700, background:tab===t?C.orange:"#f1f3f5", color:tab===t?"#fff":"#333", border:"none"}}>
+          <button key={t} onClick={()=>setTab(t)}
+            style={{flex:1,padding:"12px 4px",fontWeight:700,fontSize:13,background:tab===t?C.orange:"#f1f3f5",color:tab===t?"#fff":"#333",border:"none"}}>
             {t==="assess"?"📊 Profile":t==="develop"?"🛠 Develop":"📝 Notes"}
           </button>
         ))}
       </div>
-
+ 
       {tab==="assess" && Object.entries(person.scores).map(([k,v]) => {
         const t = VIRTUES[k];
-        const showHas = v >= 2;
+        const good = v >= 2;
         return (
-          <div key={k} style={{marginBottom:20, background:"#fff", border:`2px solid ${t.border}`, borderRadius:14, overflow:"hidden"}}>
-            <div style={{background:t.bg, padding:"16px 20px", display:"flex", alignItems:"center", gap:16}}>
-              <span style={{fontSize:42}}>{t.icon}</span>
-              <div style={{flex:1}}><div style={{fontSize:21, fontWeight:800, color:t.color}}>{t.label}</div></div>
-              <span style={{fontSize:18, fontWeight:700}}>{v}/3</span>
+          <div key={k} style={{marginBottom:14,background:"#fff",border:`2px solid ${t.border}`,borderRadius:12,overflow:"hidden"}}>
+            <div style={{background:t.bg,padding:"12px 16px",display:"flex",alignItems:"center",gap:12}}>
+              <span style={{fontSize:32}}>{t.icon}</span>
+              <div style={{flex:1,fontSize:17,fontWeight:800,color:t.color}}>{t.label}</div>
+              <div style={{textAlign:"right"}}>
+                <div style={{fontSize:18,fontWeight:800}}>{v}/3</div>
+                <div style={{fontSize:11,color:C.textMuted}}>{SCORE_LABELS[v]}</div>
+              </div>
             </div>
-            <div style={{padding:"20px"}}>
-              {(showHas ? t.strong : t.weak).map((s,i) => (
-                <div key={i} style={{marginBottom:6}}>{showHas?"→":"–"} {s}</div>
+            <div style={{padding:"12px 16px"}}>
+              {(good ? t.strong : t.weak).map((s,i) => (
+                <div key={i} style={{marginBottom:4,fontSize:14,color:C.textSub}}>{good?"→":"–"} {s}</div>
               ))}
             </div>
           </div>
         );
       })}
-
-      {tab==="develop" && (
-        <div>
-          {Object.entries(person.scores).map(([k,v]) => {
-            const t = VIRTUES[k];
-            return (
-              <div key={k} style={{marginBottom:20, background:"#fff", border:`2px solid ${t.border}`, borderRadius:14, overflow:"hidden"}}>
-                <div style={{background:t.bg, padding:"14px 20px", display:"flex", alignItems:"center", gap:12}}>
-                  <span style={{fontSize:28}}>{t.icon}</span>
-                  <div style={{fontSize:18, fontWeight:800, color:t.color, flex:1}}>{t.label}</div>
-                  <span style={{fontSize:14, color:C.textMuted, background:"#fff", padding:"4px 10px", borderRadius:20, fontWeight:700}}>{SCORE_LABELS[v]}</span>
+ 
+      {tab==="develop" && Object.entries(person.scores).map(([k,v]) => {
+        const t = VIRTUES[k];
+        return (
+          <div key={k} style={{marginBottom:14,background:"#fff",border:`2px solid ${t.border}`,borderRadius:12,overflow:"hidden"}}>
+            <div style={{background:t.bg,padding:"12px 16px",display:"flex",alignItems:"center",gap:12}}>
+              <span style={{fontSize:28}}>{t.icon}</span>
+              <div style={{fontSize:16,fontWeight:800,color:t.color,flex:1}}>{t.label}</div>
+              <span style={{fontSize:12,color:C.textMuted,background:"#fff",padding:"3px 10px",borderRadius:20,fontWeight:700,border:`1px solid ${C.border}`}}>{SCORE_LABELS[v]}</span>
+            </div>
+            <div style={{padding:"12px 16px"}}>
+              {t.develop.map((step,i) => (
+                <div key={i} style={{display:"flex",gap:10,marginBottom:10,alignItems:"flex-start"}}>
+                  <span style={{background:C.orange,color:"#fff",borderRadius:"50%",width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:800,flexShrink:0}}>{i+1}</span>
+                  <span style={{fontSize:14,color:C.text,lineHeight:1.5}}>{step}</span>
                 </div>
-                <div style={{padding:"16px 20px"}}>
-                  {t.develop.map((step,i) => (
-                    <div key={i} style={{display:"flex", gap:12, marginBottom:10, alignItems:"flex-start"}}>
-                      <span style={{background:C.orange, color:"#fff", borderRadius:"50%", width:22, height:22, display:"flex", alignItems:"center", justifyContent:"center", fontSize:12, fontWeight:800, flexShrink:0}}>{i+1}</span>
-                      <span style={{fontSize:14, color:C.text, lineHeight:1.5}}>{step}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
-
+              ))}
+            </div>
+          </div>
+        );
+      })}
+ 
       {tab==="notes" && (
-        <div style={{background:"#fff", border:`1px solid ${C.border}`, borderRadius:12, padding:24, minHeight:200, whiteSpace:"pre-wrap", fontSize:15}}>
-          {person.notes || "No notes added yet."}
+        <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,padding:20,minHeight:180,whiteSpace:"pre-wrap",fontSize:14,color:person.notes?C.text:C.textMuted}}>
+          {person.notes || "No notes added yet.\n\nUse this space to record key moments, conversations, prayer requests, or anything God puts on your heart about this athlete."}
         </div>
       )}
     </Modal>
   );
 }
-
-const BLANK_ATHLETE = { id:"", name:"", role:"", notes:"", scores:{L:1,P:1,S:1,G:1,H:1,Gr:1,J:1}, lastUpdated: null };
-
+ 
+// ─── TEAM NAME EDIT MODAL ─────────────────────────────────────────────────────
+function TeamNameModal({ team, onSave, onClose }) {
+  const [name, setName] = useState(team ? team.name : "");
+  return (
+    <Modal title={team ? "Rename Team" : "New Team"} onClose={onClose}>
+      <input autoFocus placeholder="Team name (e.g., '14U Blue Jays')" value={name}
+        onChange={e=>setName(e.target.value)} onKeyDown={e=>e.key==="Enter"&&name.trim()&&onSave(name.trim())}
+        style={{width:"100%",padding:14,fontSize:17,border:`2px solid ${C.border}`,borderRadius:10,marginBottom:20}} />
+      <div style={{display:"flex",gap:12,justifyContent:"flex-end"}}>
+        <button onClick={onClose} style={{padding:"12px 24px",border:"none",background:"#ddd",borderRadius:10,fontWeight:700}}>Cancel</button>
+        <button onClick={()=>name.trim()&&onSave(name.trim())} disabled={!name.trim()}
+          style={{padding:"12px 28px",border:"none",background:name.trim()?C.orange:"#ccc",color:"#fff",borderRadius:10,fontWeight:700}}>
+          {team ? "Rename" : "Create Team"}
+        </button>
+      </div>
+    </Modal>
+  );
+}
+ 
+// ─── TEAM SWITCHER ────────────────────────────────────────────────────────────
+function TeamSwitcher({ teams, activeId, onSwitch, onNew, onRename, onDelete }) {
+  const [open, setOpen] = useState(false);
+  const active = teams.find(t=>t.id===activeId) || teams[0];
+  return (
+    <div style={{position:"relative"}}>
+      <button onClick={()=>setOpen(o=>!o)}
+        style={{display:"flex",alignItems:"center",gap:8,padding:"8px 14px",borderRadius:10,border:`2px solid ${C.orange}`,background:"#fff",fontWeight:700,fontSize:14,maxWidth:200}}>
+        <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{active?.name||"My Team"}</span>
+        <span style={{flexShrink:0,color:C.orange}}>{open?"▲":"▼"}</span>
+      </button>
+      {open && (
+        <div style={{position:"absolute",top:"calc(100% + 8px)",left:0,background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,boxShadow:"0 8px 30px rgba(0,0,0,0.15)",zIndex:100,minWidth:220,overflow:"hidden"}}>
+          {teams.map(t => (
+            <div key={t.id} style={{display:"flex",alignItems:"center",background:t.id===activeId?"#fff8f0":"#fff",borderBottom:`1px solid ${C.border}`}}>
+              <button onClick={()=>{onSwitch(t.id);setOpen(false);}}
+                style={{flex:1,padding:"12px 16px",background:"none",border:"none",textAlign:"left",fontWeight:t.id===activeId?700:400,color:t.id===activeId?C.orange:C.text,fontSize:14}}>
+                {t.id===activeId?"✓ ":""}{t.name}
+              </button>
+              <button onClick={()=>{onRename(t);setOpen(false);}}
+                style={{padding:"12px 10px",background:"none",border:"none",color:C.textMuted,fontSize:16}} title="Rename">✏</button>
+              {teams.length > 1 && (
+                <button onClick={()=>{onDelete(t);setOpen(false);}}
+                  style={{padding:"12px 10px",background:"none",border:"none",color:"#ffbbbb",fontSize:16}} title="Delete team">🗑</button>
+              )}
+            </div>
+          ))}
+          <button onClick={()=>{onNew();setOpen(false);}}
+            style={{width:"100%",padding:"12px 16px",background:"#fff8f0",border:"none",textAlign:"left",fontWeight:700,color:C.orange,fontSize:14}}>
+            ＋ New Team
+          </button>
+        </div>
+      )}
+      {open && <div style={{position:"fixed",inset:0,zIndex:99}} onClick={()=>setOpen(false)} />}
+    </div>
+  );
+}
+ 
 // ─── MAIN APP ─────────────────────────────────────────────────────────────────
 function App() {
-  const [tab, setTab] = useState("athletes");
-  const [athletes, setAthletes] = useState(() => load("awaygame_athletes_v1", []));
-  const [editing, setEditing] = useState(null);
-  const [viewing, setViewing] = useState(null);
-  const [deleteConfirm, setDeleteConfirm] = useState(null);
-
+  const [teams,    setTeams]    = useState(() => {
+    const saved = load("awaygame_teams_v2", null);
+    if (saved && saved.length) return saved;
+    // migrate old single-team data
+    const oldAthletes = load("awaygame_athletes_v1", []);
+    const defaultTeam = { id: uid(), name: "My Team" };
+    if (oldAthletes.length) {
+      const migrated = oldAthletes.map(a => ({...a, teamId: defaultTeam.id}));
+      save("awaygame_athletes_v2", migrated);
+    }
+    return [defaultTeam];
+  });
+  const [athletes, setAthletes] = useState(() => load("awaygame_athletes_v2", []));
+  const [activeTeamId, setActiveTeamId] = useState(() => {
+    const saved = load("awaygame_teams_v2", null);
+    return saved && saved.length ? saved[0].id : teams[0].id;
+  });
+ 
+  const [tab,           setTab]           = useState("athletes");
+  const [editing,       setEditing]       = useState(null);
+  const [viewing,       setViewing]       = useState(null);
+  const [showHelp,      setShowHelp]      = useState(false);
+  const [confirmDelete, setConfirmDelete] = useState(null); // { type: "athlete"|"team", data }
+  const [teamModal,     setTeamModal]     = useState(null); // null | "new" | teamObj
+ 
+  // persist
+  useEffect(() => { save("awaygame_teams_v2", teams); }, [teams]);
+  useEffect(() => { save("awaygame_athletes_v2", athletes); }, [athletes]);
+ 
+  const teamAthletes = athletes.filter(a => a.teamId === activeTeamId);
+  const teamStats    = calcTeamStats(teamAthletes);
+ 
   function saveAthlete(p) {
-    const updated = {...p, id: p.id || uid(), lastUpdated: Date.now()};
+    const updated = { ...p, id: p.id || uid(), lastUpdated: Date.now(), teamId: p.teamId || activeTeamId };
     const next = p.id ? athletes.map(x => x.id === p.id ? updated : x) : [...athletes, updated];
     setAthletes(next);
-    save("awaygame_athletes_v1", next);
     setEditing(null);
+    // if athlete was moved to another team, switch to that team
+    if (updated.teamId !== activeTeamId) setActiveTeamId(updated.teamId);
   }
-
+ 
   function deleteAthlete(id) {
     const next = athletes.filter(a => a.id !== id);
     setAthletes(next);
-    save("awaygame_athletes_v1", next);
-    setDeleteConfirm(null);
+    setConfirmDelete(null);
     if (viewing && viewing.id === id) setViewing(null);
   }
-
-  const teamStats = calculateTeamProgress(athletes);
-
+ 
+  function saveTeam(name) {
+    if (teamModal === "new") {
+      const newTeam = { id: uid(), name };
+      const next = [...teams, newTeam];
+      setTeams(next);
+      setActiveTeamId(newTeam.id);
+    } else {
+      setTeams(teams.map(t => t.id === teamModal.id ? { ...t, name } : t));
+    }
+    setTeamModal(null);
+  }
+ 
+  function deleteTeam(team) {
+    const next = teams.filter(t => t.id !== team.id);
+    const nextAthletes = athletes.filter(a => a.teamId !== team.id);
+    setTeams(next);
+    setAthletes(nextAthletes);
+    if (activeTeamId === team.id) setActiveTeamId(next[0]?.id || null);
+    setConfirmDelete(null);
+  }
+ 
+  const blankAthlete = { ...BLANK_ATHLETE, teamId: activeTeamId };
+ 
   return (
-    <div style={{minHeight:"100vh", background:"#f8f9fa"}}>
-      {/* HEADER */}
-      <div style={{background:"#fff", borderBottom:"4px solid #ff8c00", padding:"0 24px", height:76, display:"flex", alignItems:"center", justifyContent:"space-between", boxShadow:"0 3px 12px rgba(0,0,0,0.1)"}}>
-        <div>
-          <div style={{fontFamily:"'Barlow Condensed',sans-serif", fontWeight:900, fontSize:32, letterSpacing:1.5, color:C.orange}}>AWAY GAME</div>
-          <div style={{fontSize:13, color:"#555"}}>Christian Parent’s Playbook</div>
+    <div style={{minHeight:"100vh",background:C.bg0}}>
+      {/* ── HEADER ── */}
+      <div style={{background:"#fff",borderBottom:`4px solid ${C.orange}`,padding:"0 16px",height:66,display:"flex",alignItems:"center",justifyContent:"space-between",boxShadow:"0 3px 12px rgba(0,0,0,0.08)",position:"sticky",top:0,zIndex:50}}>
+        <div style={{display:"flex",alignItems:"center",gap:12}}>
+          <div>
+            <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:900,fontSize:28,letterSpacing:1.5,color:C.orange,lineHeight:1}}>AWAY GAME</div>
+            <div style={{fontSize:11,color:"#777",lineHeight:1}}>Christian Parent's Playbook</div>
+          </div>
         </div>
-        <div style={{display:"flex", gap:8}}>
-          <button onClick={()=>setTab("athletes")} style={{padding:"10px 22px", borderRadius:10, background:tab==="athletes"?C.orange:"#fff", color:tab==="athletes"?"#fff":"#333", fontWeight:700, border:"2px solid #ff8c00"}}>👥 My Athletes</button>
-          <button onClick={()=>setTab("playbook")} style={{padding:"10px 22px", borderRadius:10, background:tab==="playbook"?C.orange:"#fff", color:tab==="playbook"?"#fff":"#333", fontWeight:700, border:"2px solid #ff8c00"}}>📖 The Playbook</button>
+        <div style={{display:"flex",gap:8,alignItems:"center"}}>
+          <button onClick={()=>setShowHelp(true)}
+            style={{padding:"8px 12px",borderRadius:10,background:"#fff",border:`2px solid ${C.border}`,fontWeight:700,fontSize:13,color:C.textSub}}>
+            ❓<span className="hide-mobile"> Help</span>
+          </button>
         </div>
       </div>
-
-      {tab === "athletes" && (
-        <div style={{padding:24}}>
-          {/* TEAM PROGRESS DASHBOARD */}
-          {athletes.length > 0 && (
-            <div className="team-card" style={{marginBottom:32}}>
-              <div style={{fontSize:20, fontWeight:800, marginBottom:16, color:C.orange}}>Team Progress Overview</div>
-              <div style={{display:"grid", gridTemplateColumns:"repeat(auto-fit, minmax(180px, 1fr))", gap:20}}>
+ 
+      {/* ── TAB BAR ── */}
+      <div style={{background:"#fff",borderBottom:`1px solid ${C.border}`,padding:"0 16px",display:"flex",alignItems:"center",gap:8,overflowX:"auto",WebkitOverflowScrolling:"touch"}}>
+        <div style={{paddingRight:8,borderRight:`1px solid ${C.border}`,marginRight:4,flexShrink:0}}>
+          <TeamSwitcher
+            teams={teams}
+            activeId={activeTeamId}
+            onSwitch={setActiveTeamId}
+            onNew={()=>setTeamModal("new")}
+            onRename={t=>setTeamModal(t)}
+            onDelete={t=>setConfirmDelete({type:"team",data:t})}
+          />
+        </div>
+        {["athletes","playbook"].map(t => (
+          <button key={t} onClick={()=>setTab(t)}
+            style={{padding:"14px 16px",background:"none",border:"none",fontWeight:700,fontSize:13,
+              color:tab===t?C.orange:C.textSub,borderBottom:tab===t?`3px solid ${C.orange}`:"3px solid transparent",
+              whiteSpace:"nowrap",flexShrink:0}}>
+            {t==="athletes"?"👥 Roster":"📖 Playbook"}
+          </button>
+        ))}
+      </div>
+ 
+      {/* ── ATHLETES TAB ── */}
+      {tab==="athletes" && (
+        <div style={{padding:"16px"}}>
+          {/* Team stats bar */}
+          {teamAthletes.length > 0 && (
+            <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:14,padding:16,marginBottom:20,boxShadow:"0 4px 15px rgba(0,0,0,0.05)"}}>
+              <div style={{fontSize:13,fontWeight:800,color:C.orange,marginBottom:12,textTransform:"uppercase",letterSpacing:1}}>Team Overview</div>
+              <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,textAlign:"center"}}>
                 <div>
-                  <div style={{fontSize:13, color:C.textMuted}}>Team Average Score</div>
-                  <div style={{fontSize:32, fontWeight:800, color:C.orange}}>{teamStats.avgScore}</div>
-                  <div style={{fontSize:13}}>out of 3.0</div>
+                  <div style={{fontSize:28,fontWeight:800,color:C.orange}}>{teamStats.avgScore}</div>
+                  <div style={{fontSize:11,color:C.textMuted}}>Avg Score</div>
                 </div>
                 <div>
-                  <div style={{fontSize:13, color:C.textMuted}}>Strong Virtues</div>
-                  <div style={{fontSize:32, fontWeight:800, color: teamStats.strongPercent > 70 ? C.green : C.orange}}>{teamStats.strongPercent}%</div>
+                  <div style={{fontSize:28,fontWeight:800,color:teamStats.strongPercent>70?C.green:C.orange}}>{teamStats.strongPercent}%</div>
+                  <div style={{fontSize:11,color:C.textMuted}}>Strong Virtues</div>
                 </div>
                 <div>
-                  <div style={{fontSize:13, color:C.textMuted}}>Athletes Tracked</div>
-                  <div style={{fontSize:32, fontWeight:800}}>{teamStats.totalAthletes}</div>
+                  <div style={{fontSize:28,fontWeight:800}}>{teamStats.totalAthletes}</div>
+                  <div style={{fontSize:11,color:C.textMuted}}>Athletes</div>
                 </div>
               </div>
             </div>
           )}
-
-          <div style={{display:"flex", justifyContent:"space-between", alignItems:"center", marginBottom:28}}>
-            <h1 style={{fontSize:28, fontWeight:800}}>My Athletes</h1>
-            <button onClick={()=>setEditing(BLANK_ATHLETE)} style={{background:C.orange, color:"#fff", border:"none", padding:"12px 28px", borderRadius:12, fontWeight:700}}>＋ Add Athlete</button>
+ 
+          {/* Actions row */}
+          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,gap:8}}>
+            <h1 style={{fontSize:22,fontWeight:800}}>Roster</h1>
+            <button onClick={()=>setEditing(blankAthlete)}
+              style={{background:C.orange,color:"#fff",border:"none",padding:"10px 20px",borderRadius:12,fontWeight:700,fontSize:14,whiteSpace:"nowrap"}}>
+              ＋ Add Athlete
+            </button>
           </div>
-
-          {athletes.length === 0 ? (
-            <div style={{textAlign:"center", padding:"120px 20px", color:"#666"}}>
-              <div style={{fontSize:80}}>⚽️🏀🏈</div>
-              <div style={{fontSize:24, margin:"20px 0"}}>Start building your team’s character</div>
-              <button onClick={()=>setEditing(BLANK_ATHLETE)} style={{background:C.orange, color:"#fff", padding:"14px 36px", borderRadius:12, fontSize:17, fontWeight:700}}>Add Your First Athlete</button>
+ 
+          {teamAthletes.length === 0 ? (
+            <div style={{textAlign:"center",padding:"80px 20px",color:"#666"}}>
+              <div style={{fontSize:64}}>⚽️🏀🏈</div>
+              <div style={{fontSize:20,margin:"16px 0",fontWeight:700}}>No athletes yet</div>
+              <div style={{fontSize:14,color:C.textMuted,marginBottom:24}}>Add your first player to start tracking character development.</div>
+              <button onClick={()=>setEditing(blankAthlete)}
+                style={{background:C.orange,color:"#fff",padding:"14px 32px",borderRadius:12,fontSize:16,fontWeight:700,border:"none"}}>
+                Add Your First Athlete
+              </button>
             </div>
           ) : (
-            <div style={{display:"grid", gridTemplateColumns:"repeat(auto-fill, minmax(310px, 1fr))", gap:20}}>
-              {athletes.map(p => {
+            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(290px,1fr))",gap:14}}>
+              {teamAthletes.map(p => {
                 const combo = getCombo(p.scores);
                 return (
-                  <div key={p.id} style={{background:"#fff", border:`1px solid ${C.border}`, borderRadius:16, padding:22, boxShadow:"0 6px 20px rgba(0,0,0,0.07)", position:"relative"}}>
-                    <button 
-                      onClick={(e)=>{e.stopPropagation(); setDeleteConfirm(p);}} 
-                      className="delete-btn" 
-                      style={{position:"absolute", top:12, right:12}}
-                    >
+                  <div key={p.id} style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:14,padding:18,boxShadow:"0 4px 16px rgba(0,0,0,0.06)",position:"relative"}}>
+                    {/* Delete btn */}
+                    <button
+                      onClick={e=>{e.stopPropagation();setConfirmDelete({type:"athlete",data:p});}}
+                      className="delete-btn"
+                      style={{position:"absolute",top:12,right:12}}>
                       🗑
                     </button>
-                    
-                    <div onClick={()=>setViewing(p)} style={{cursor:"pointer"}}>
-                      <div style={{fontSize:22, fontWeight:800, marginBottom:8}}>{p.name}</div>
-                      {p.role && <div style={{color:C.textSub, marginBottom:12}}>{p.role}</div>}
-                      
-                      <div style={{display:"flex", gap:8, flexWrap:"wrap", marginBottom:16}}>
+ 
+                    <div onClick={()=>setViewing(p)} style={{cursor:"pointer",paddingRight:44}}>
+                      <div style={{fontSize:20,fontWeight:800,marginBottom:4}}>{p.name}</div>
+                      {p.role && <div style={{color:C.textSub,fontSize:13,marginBottom:10}}>{p.role}</div>}
+ 
+                      {/* Virtue chips */}
+                      <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}}>
                         {Object.entries(p.scores).map(([k,v]) => (
-                          <div key={k} style={{background:VIRTUES[k].bg, padding:"6px 10px", borderRadius:8, fontSize:14}}>{VIRTUES[k].icon} {v}</div>
+                          <div key={k} style={{background:VIRTUES[k].bg,padding:"4px 8px",borderRadius:6,fontSize:12,fontWeight:600}}>
+                            {VIRTUES[k].icon} {v}
+                          </div>
                         ))}
                       </div>
-
-                      <div style={{marginBottom:12}}>
-                        <div className="progress-bar">
-                          <div className="progress-fill" style={{width: `${combo.progress}%`, background: combo.progress > 80 ? "linear-gradient(90deg,#00b36b,#34d399)" : combo.progress > 50 ? "linear-gradient(90deg,#ff8c00,#ffaa00)" : "#dc3545"}} />
-                        </div>
+ 
+                      {/* Progress bar */}
+                      <div className="progress-bar" style={{marginBottom:8}}>
+                        <div className="progress-fill" style={{width:`${combo.progress}%`,background:progressBg(combo.progress)}} />
                       </div>
-
-                      <div style={{fontSize:13, color:C.textMuted}}>Last updated: {p.lastUpdated ? new Date(p.lastUpdated).toLocaleDateString() : "Never"}</div>
+ 
+                      {/* Label + date */}
+                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
+                        <span style={{fontSize:12,fontWeight:700,color:combo.color}}>{combo.icon} {combo.label}</span>
+                        <span style={{fontSize:11,color:C.textMuted}}>{p.lastUpdated?new Date(p.lastUpdated).toLocaleDateString():"Never"}</span>
+                      </div>
                     </div>
                   </div>
                 );
@@ -384,32 +729,93 @@ function App() {
           )}
         </div>
       )}
-
-      {tab === "playbook" && (
-        <div style={{padding:24, maxWidth:820, margin:"0 auto"}}>
-          <h2 style={{color:C.orange, marginBottom:8}}>The Seven Virtues</h2>
-          <p style={{color:C.textSub, marginBottom:32}}>Fruit of the Spirit applied to youth sports.</p>
+ 
+      {/* ── PLAYBOOK TAB ── */}
+      {tab==="playbook" && (
+        <div style={{padding:16,maxWidth:760,margin:"0 auto"}}>
+          <div style={{background:"#fff",border:`2px solid ${C.orange}`,borderRadius:14,padding:20,marginBottom:24}}>
+            <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:900,fontSize:24,color:C.orange,marginBottom:8}}>THE PLAYBOOK</div>
+            <p style={{fontSize:14,color:C.textSub,lineHeight:1.7}}>
+              The seven virtues below come from the Fruit of the Spirit (Galatians 5:22–23), applied to competitive youth sports.
+              The goal isn't to grade your athletes — it's to help you see them the way God does, and coach them toward who they're becoming.
+            </p>
+          </div>
           {Object.values(VIRTUES).map(t => (
-            <div key={t.key} style={{marginBottom:24, background:"#fff", border:`1px solid ${t.border}`, borderRadius:16, padding:24}}>
-              <div style={{display:"flex", alignItems:"center", gap:16}}>
-                <span style={{fontSize:48}}>{t.icon}</span>
+            <div key={t.key} style={{marginBottom:16,background:"#fff",border:`1px solid ${C.border}`,borderRadius:14,overflow:"hidden"}}>
+              <div style={{background:t.bg,padding:"14px 18px",display:"flex",alignItems:"center",gap:14}}>
+                <span style={{fontSize:40}}>{t.icon}</span>
                 <div>
-                  <div style={{fontSize:22, fontWeight:800, color:t.color}}>{t.label}</div>
-                  <div style={{color:C.textSub}}>"{t.tagline}"</div>
+                  <div style={{fontSize:20,fontWeight:800,color:t.color}}>{t.label}</div>
+                  <div style={{color:C.textSub,fontSize:13,fontStyle:"italic"}}>"{t.tagline}"</div>
+                </div>
+              </div>
+              <div style={{padding:"14px 18px"}}>
+                <div style={{fontSize:12,color:C.textMuted,marginBottom:10}}>{t.scoreMeaning}</div>
+                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
+                  <div>
+                    <div style={{fontSize:12,fontWeight:700,color:C.green,marginBottom:6}}>✓ SHOWING UP</div>
+                    {t.strong.map((s,i)=><div key={i} style={{fontSize:13,color:C.textSub,marginBottom:4}}>→ {s}</div>)}
+                  </div>
+                  <div>
+                    <div style={{fontSize:12,fontWeight:700,color:C.red,marginBottom:6}}>✗ GROWING EDGE</div>
+                    {t.weak.map((s,i)=><div key={i} style={{fontSize:13,color:C.textSub,marginBottom:4}}>– {s}</div>)}
+                  </div>
                 </div>
               </div>
             </div>
           ))}
         </div>
       )}
-
-      {editing && <EditModal person={editing} onSave={saveAthlete} onClose={()=>setEditing(null)} />}
-      {viewing && <PersonDetail person={viewing} onClose={()=>setViewing(null)} onEdit={p=>{setViewing(null); setEditing(p);}} />}
-      {deleteConfirm && <ConfirmDelete name={deleteConfirm.name} onConfirm={()=>deleteAthlete(deleteConfirm.id)} onCancel={()=>setDeleteConfirm(null)} />}
+ 
+      {/* ── MODALS ── */}
+      {editing && (
+        <EditModal person={editing} teams={teams} currentTeamId={activeTeamId} onSave={saveAthlete} onClose={()=>setEditing(null)} />
+      )}
+ 
+      {viewing && (
+        <PersonDetail
+          person={viewing}
+          onClose={()=>setViewing(null)}
+          onEdit={p=>{ setViewing(null); setEditing(athletes.find(a=>a.id===p.id)||p); }}
+          onDelete={()=>setConfirmDelete({type:"athlete",data:viewing})}
+        />
+      )}
+ 
+      {confirmDelete?.type==="athlete" && (
+        <ConfirmModal
+          title="Delete Athlete"
+          message={<>Are you sure you want to delete <strong>{confirmDelete.data.name}</strong>?</>}
+          warning="This cannot be undone."
+          confirmLabel="Yes, Delete"
+          onConfirm={()=>deleteAthlete(confirmDelete.data.id)}
+          onCancel={()=>setConfirmDelete(null)}
+        />
+      )}
+ 
+      {confirmDelete?.type==="team" && (
+        <ConfirmModal
+          title="Delete Team"
+          message={<>Delete <strong>{confirmDelete.data.name}</strong>?</>}
+          warning={`All ${athletes.filter(a=>a.teamId===confirmDelete.data.id).length} athlete(s) on this team will also be permanently deleted. Move any players you want to keep before deleting.`}
+          confirmLabel="Delete Team & Athletes"
+          onConfirm={()=>deleteTeam(confirmDelete.data)}
+          onCancel={()=>setConfirmDelete(null)}
+        />
+      )}
+ 
+      {teamModal && (
+        <TeamNameModal
+          team={teamModal === "new" ? null : teamModal}
+          onSave={saveTeam}
+          onClose={()=>setTeamModal(null)}
+        />
+      )}
+ 
+      {showHelp && <HelpModal onClose={()=>setShowHelp(false)} />}
     </div>
   );
 }
-
+ 
 const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(React.createElement(App));
 </script>
