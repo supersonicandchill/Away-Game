@@ -1,820 +1,2492 @@
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0"/>
-<link rel="preconnect" href="https://fonts.googleapis.com"/>
-<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@700;900&family=DM+Sans:wght@400;500;700&display=swap" rel="stylesheet"/>
-<title>Away Game — Christian Parent's Playbook</title>
-<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react/18.2.0/umd/react.production.min.js"></script>
-<script crossorigin src="https://cdnjs.cloudflare.com/ajax/libs/react-dom/18.2.0/umd/react-dom.production.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/babel-standalone/7.23.2/babel.min.js"></script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stock Gains Kid Assistant 🧸</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
-* { box-sizing: border-box; margin: 0; padding: 0; }
-html { -webkit-text-size-adjust: 100%; }
-body { background: #f8f9fa; font-family: 'DM Sans', system-ui, sans-serif; color: #1a1a1a; line-height: 1.6; overscroll-behavior: none; }
-button { cursor: pointer; font-family: inherit; -webkit-tap-highlight-color: transparent; }
-input, textarea, select { font-family: inherit; }
-.progress-bar { height: 10px; background: #e9ecef; border-radius: 9999px; overflow: hidden; }
-.progress-fill { height: 100%; transition: width 0.5s ease; }
-.delete-btn { background: #fee2e2; color: #ef4444; border: none; width: 36px; height: 36px; border-radius: 8px; font-size: 18px; display:flex; align-items:center; justify-content:center; flex-shrink:0; }
-.nav-btn { padding: 9px 14px; border-radius: 10px; font-weight: 700; font-size: 13px; border: 2px solid #ff8c00; transition: background 0.15s; white-space: nowrap; }
-@media (max-width: 480px) {
-  .nav-btn { padding: 8px 10px; font-size: 12px; }
-  .hide-mobile { display: none !important; }
-  .modal-inner { width: 100% !important; max-width: 100% !important; border-radius: 16px 16px 0 0 !important; max-height: 94vh !important; margin-top: auto; }
-  .modal-wrap { align-items: flex-end !important; }
-}
+  :root {
+    --bg: #0d1117;
+    --panel: #161b22;
+    --border: #30363d;
+    --accent: #58a6ff;
+    --green: #3fb950;
+    --red: #f85149;
+    --gold: #ffd700;
+    --tree: #3fb950;
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--bg);
+    color: #e6edf3;
+    font-family: 'Nunito', sans-serif;
+    margin: 0;
+    min-height: 100vh;
+  }
+  .fredoka { font-family: 'Fredoka One', cursive; }
+  ::-webkit-scrollbar { width: 6px; height: 6px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: #444c56; border-radius: 3px; }
+
+  /* Tour overlay */
+  #tour-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.75);
+    z-index: 9000;
+    display: none;
+  }
+  #tour-box {
+    position: fixed;
+    z-index: 9001;
+    background: #1c2333;
+    border: 2px solid var(--gold);
+    border-radius: 18px;
+    padding: 24px 28px;
+    max-width: 420px;
+    box-shadow: 0 0 40px rgba(255,215,0,0.3);
+    animation: popIn 0.3s ease;
+  }
+  @keyframes popIn {
+    from { transform: scale(0.8); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+  }
+  .tour-highlight {
+    outline: 4px solid #00ff88 !important;
+    outline-offset: 4px !important;
+    box-shadow: 0 0 20px rgba(0,255,136,0.5) !important;
+    z-index: 8999 !important;
+    position: relative;
+  }
+  .pulse-ring {
+    animation: pulseRing 1.5s ease-in-out infinite;
+  }
+  @keyframes pulseRing {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(0,255,136,0.5); }
+    50% { box-shadow: 0 0 0 12px rgba(0,255,136,0); }
+  }
+
+  /* Confetti */
+  .confetti-piece {
+    position: fixed;
+    width: 10px; height: 10px;
+    top: -10px;
+    animation: fall linear forwards;
+    z-index: 9999;
+    border-radius: 2px;
+  }
+  @keyframes fall {
+    to { transform: translateY(110vh) rotate(720deg); opacity: 0; }
+  }
+
+  /* Watchlist */
+  .watchlist-item {
+    cursor: pointer;
+    transition: background 0.15s;
+    border-radius: 10px;
+    padding: 8px 12px;
+    margin-bottom: 4px;
+  }
+  .watchlist-item:hover { background: #21262d; }
+  .watchlist-item.active { background: #1d2d44; border-left: 3px solid var(--accent); }
+
+  /* Price flicker */
+  .price-up { color: var(--green); }
+  .price-down { color: var(--red); }
+  .price-flash-up { animation: flashUp 0.5s ease; }
+  .price-flash-down { animation: flashDown 0.5s ease; }
+  @keyframes flashUp { 0% { background: rgba(63,185,80,0.4); } 100% { background: transparent; } }
+  @keyframes flashDown { 0% { background: rgba(248,81,73,0.4); } 100% { background: transparent; } }
+
+  /* Panels */
+  .panel {
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 16px;
+  }
+  .panel-title {
+    font-family: 'Fredoka One', cursive;
+    font-size: 1.1rem;
+    margin-bottom: 12px;
+    color: var(--gold);
+  }
+
+  /* Signal badges */
+  .signal-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+  .sig-buy { background: rgba(63,185,80,0.2); color: var(--green); border: 1px solid var(--green); }
+  .sig-tree { background: rgba(255,215,0,0.2); color: var(--gold); border: 1px solid var(--gold); }
+  .sig-none { background: rgba(139,148,158,0.2); color: #8b949e; border: 1px solid #444; }
+
+  /* Snack meter */
+  .snack-bar-bg {
+    background: #21262d;
+    border-radius: 999px;
+    height: 10px;
+    overflow: hidden;
+  }
+  .snack-bar-fill {
+    background: linear-gradient(90deg, #ffd700, #ff9900);
+    height: 100%;
+    border-radius: 999px;
+    transition: width 1s ease;
+  }
+
+  /* Chart container */
+  #chart-wrap {
+    position: relative;
+    height: 300px;
+  }
+
+  /* Tab buttons */
+  .tab-btn {
+    padding: 6px 14px;
+    border-radius: 8px;
+    font-size: 0.8rem;
+    font-weight: 700;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: transparent;
+    color: #8b949e;
+    transition: all 0.15s;
+  }
+  .tab-btn.active {
+    background: var(--accent);
+    color: white;
+    border-color: var(--accent);
+  }
+
+  /* Indicator toggle */
+  .ind-toggle {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 10px;
+    border-radius: 8px;
+    border: 1px solid var(--border);
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 700;
+    transition: all 0.15s;
+    user-select: none;
+  }
+  .ind-toggle.on { border-color: var(--accent); color: var(--accent); }
+
+  /* Portfolio position row */
+  .pos-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 8px 10px;
+    background: #1c2333;
+    border-radius: 10px;
+    margin-bottom: 6px;
+    font-size: 0.82rem;
+  }
+
+  /* API key input */
+  #api-setup {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.9);
+    z-index: 8000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .api-card {
+    background: #1c2333;
+    border: 2px solid var(--gold);
+    border-radius: 20px;
+    padding: 36px 40px;
+    max-width: 480px;
+    width: 90%;
+    text-align: center;
+  }
+
+  /* Responsive sidebar */
+  @media (max-width: 768px) {
+    #sidebar { width: 100% !important; border-right: none !important; border-bottom: 1px solid var(--border); }
+    #main-layout { flex-direction: column !important; }
+  }
+  select, input[type="number"], input[type="text"] {
+    background: #21262d;
+    border: 1px solid var(--border);
+    color: #e6edf3;
+    border-radius: 8px;
+    padding: 6px 10px;
+    font-family: 'Nunito', sans-serif;
+    font-size: 0.85rem;
+    outline: none;
+  }
+  select:focus, input:focus { border-color: var(--accent); }
+  .btn {
+    border-radius: 10px;
+    padding: 8px 16px;
+    font-family: 'Nunito', sans-serif;
+    font-weight: 700;
+    cursor: pointer;
+    border: none;
+    transition: all 0.15s;
+  }
+  .btn-accent { background: var(--accent); color: white; }
+  .btn-accent:hover { filter: brightness(1.15); }
+  .btn-green { background: var(--green); color: white; }
+  .btn-green:hover { filter: brightness(1.1); }
+  .btn-red { background: var(--red); color: white; }
+  .btn-gold { background: var(--gold); color: #111; }
+  .btn-sm { padding: 4px 12px; font-size: 0.8rem; }
+  .btn-ghost { background: transparent; border: 1px solid var(--border); color: #8b949e; }
+  .btn-ghost:hover { border-color: var(--accent); color: var(--accent); }
+
+  /* Loading spinner */
+  .spinner {
+    width: 24px; height: 24px;
+    border: 3px solid var(--border);
+    border-top-color: var(--accent);
+    border-radius: 50%;
+    animation: spin 0.7s linear infinite;
+    display: inline-block;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+
+  /* scrollable panels */
+  .scroll-panel { max-height: 280px; overflow-y: auto; }
+
+  /* Money tree animation */
+  .tree-glow {
+    animation: treeGlow 2s ease-in-out infinite;
+  }
+  @keyframes treeGlow {
+    0%, 100% { text-shadow: 0 0 10px rgba(63,185,80,0.5); }
+    50% { text-shadow: 0 0 25px rgba(63,185,80,1), 0 0 50px rgba(63,185,80,0.5); }
+  }
+
+  /* Disclaimer */
+  .disclaimer {
+    background: rgba(248,81,73,0.1);
+    border: 1px solid rgba(248,81,73,0.4);
+    border-radius: 10px;
+    padding: 10px 14px;
+    font-size: 0.75rem;
+    color: #f85149;
+    margin-top: 12px;
+  }
 </style>
 </head>
 <body>
-<div id="root"></div>
-<script type="text/babel" data-presets="react">
-const { useState, useEffect } = React;
- 
-// ─── STORAGE ──────────────────────────────────────────────────────────────────
-function load(key, fb) { try { const v = localStorage.getItem(key); return v ? JSON.parse(v) : fb; } catch { return fb; } }
-function save(key, val) { try { localStorage.setItem(key, JSON.stringify(val)); } catch {} }
-let _c = Date.now();
-function uid() { return "x" + (++_c).toString(36); }
- 
-// ─── COLORS ───────────────────────────────────────────────────────────────────
-const C = {
-  bg0: "#f8f9fa", bg1: "#ffffff", bg2: "#f1f3f5", bg3: "#e9ecef",
-  border: "#dee2e6", borderHi: "#ff8c00",
-  text: "#1a1a1a", textSub: "#495057", textMuted: "#6c757d",
-  orange: "#ff8c00", green: "#00b36b", red: "#ef4444"
-};
- 
-// ─── VIRTUES ──────────────────────────────────────────────────────────────────
-const VIRTUES = {
-  L:  { key:"L",  label:"Love",         icon:"❤️",  tagline:"Others-first in a me-first culture",    color:"#ff4d4d", bg:"#fff0f0", border:"#ff8c00",
-        scoreMeaning:"0=Never • 1=Rarely • 2=Sometimes • 3=Consistently puts others first",
-        strong:["Celebrates teammates' success","Shows genuine kindness","Puts team above self"],
-        weak:  ["Selfish on and off the field","Dismisses or ignores teammates","Only cheers for own highlights"],
-        develop:["After each game, name one teammate who helped you win","Do one act of encouragement before you leave the field","Pray: 'Lord, help me love my teammates the way You love me'"] },
-  P:  { key:"P",  label:"Peace",        icon:"☮️",  tagline:"Calm anchored in Christ",               color:"#00b36b", bg:"#f0fff4", border:"#ff8c00",
-        scoreMeaning:"0=Constant anxiety • 1=Occasional calm • 2=Usually calm • 3=Peace that guards the heart",
-        strong:["Stays composed under pressure","Calms teammates in tense moments","Bounces back quickly from mistakes"],
-        weak:  ["Anxious or panicked when things go wrong","Spreads tension to teammates","Dwells on errors during play"],
-        develop:["Practice three slow breaths before any big moment","Write down one worry this week and give it to God in prayer","Memorize Phil. 4:7 — let it anchor your pregame routine"] },
-  S:  { key:"S",  label:"Self-Control", icon:"🛡️", tagline:"Responding instead of reacting",        color:"#0077cc", bg:"#f0f8ff", border:"#ff8c00",
-        scoreMeaning:"0=Frequent outbursts • 1=Improving • 2=Usually controlled • 3=Strong self-discipline",
-        strong:["Responds to bad calls without blowing up","Keeps emotions in check under provocation","Leads by example in discipline"],
-        weak:  ["Frequent outbursts or meltdowns","Argues with officials or coaches","Lets frustration hurt performance"],
-        develop:["Identify your #1 trigger — name it, then make a plan for it","After a bad call, count to 5 before you react","Ask a trusted teammate to hold you accountable this week"] },
-  G:  { key:"G",  label:"Gentleness",   icon:"🌿",  tagline:"Strength under control",               color:"#9c4dff", bg:"#f8f0ff", border:"#ff8c00",
-        scoreMeaning:"0=Often harsh • 1=Sometimes gentle • 2=Usually gentle • 3=Strength under control",
-        strong:["Encourages struggling teammates","Competes hard without being cruel","Uses words that build up, not tear down"],
-        weak:  ["Often harsh or cutting with words","Intimidates or belittles others","Confuses meanness with toughness"],
-        develop:["Before criticizing a teammate, ask: 'Is this kind AND true?'","Find one struggling player this week and intentionally encourage them","Journal: where did strength AND gentleness show up together today?"] },
-  H:  { key:"H",  label:"Humility",     icon:"🙏",  tagline:"Playing from identity, not for identity", color:"#ff8c00", bg:"#fff8f0", border:"#ff8c00",
-        scoreMeaning:"0=Very prideful • 1=Occasional humility • 2=Growing humility • 3=Consistently humble",
-        strong:["Credits teammates and coaches for success","Accepts coaching without defensiveness","Secure enough to celebrate others"],
-        weak:  ["Takes credit, deflects blame","Gets defensive when corrected","Needs to be the star"],
-        develop:["After your next win, publicly credit two specific teammates","When corrected by a coach, respond: 'Thank you, I'll work on that'","Ask yourself: 'Am I playing TO prove something or FROM knowing who I am?'"] },
-  Gr: { key:"Gr", label:"Gratitude",    icon:"🙌",  tagline:"Thankful in all circumstances",         color:"#ffaa00", bg:"#fffdf0", border:"#ff8c00",
-        scoreMeaning:"0=Very entitled • 1=Occasional thanks • 2=Usually grateful • 3=Thankful in all circumstances",
-        strong:["Thanks coaches, officials, and opponents","Grateful for the opportunity to compete","Positive attitude win or lose"],
-        weak:  ["Entitled attitude about playing time or roles","Rarely thanks others","Complains about conditions, calls, or teammates"],
-        develop:["Start every practice with one thing you're grateful for about this team","Write a one-line thank-you to a coach or teammate this week","After a loss, find three genuine things to be thankful for before you leave"] },
-  J:  { key:"J",  label:"Joy",          icon:"🎉",  tagline:"Delight that outlasts the score",       color:"#ff6600", bg:"#fff4f0", border:"#ff8c00",
-        scoreMeaning:"0=Joy is gone • 1=Rare joy • 2=Usually joyful • 3=Consistent delight",
-        strong:["Genuine enjoyment of the game","Joy that doesn't depend on the scoreboard","Lifts the energy of those around them"],
-        weak:  ["Only happy when winning","Drains team energy with negativity","Has lost the love of the game"],
-        develop:["Recall why you first fell in love with this sport — write it down","Find one moment in each practice to just enjoy the game","Remind yourself: the scoreboard is temporary, but who you're becoming is not"] }
-};
- 
-const SCORE_LABELS = ["Missing","Emerging","Developing","Strong"];
-const BLANK_ATHLETE = { id:"", name:"", role:"", notes:"", scores:{L:1,P:1,S:1,G:1,H:1,Gr:1,J:1}, lastUpdated:null };
- 
-// ─── HELPERS ──────────────────────────────────────────────────────────────────
-function getCombo(scores) {
-  const strong    = Object.values(scores).filter(v => v === 3).length;
-  const developing = Object.values(scores).filter(v => v >= 2).length;
-  const avg = (Object.values(scores).reduce((a,b)=>a+b,0)/7).toFixed(1);
-  if (strong >= 5)     return { label:"Kingdom Competitor", icon:"🏆", color:C.orange, progress:95,  avg };
-  if (developing >= 6) return { label:"Strong Disciple",    icon:"🌟", color:C.green,  progress:85,  avg };
-  return { label:"Developing Disciple", icon:"🌱", color:"#fd7e14", progress:Math.round(developing/7*100), avg };
-}
- 
-function calcTeamStats(athletes) {
-  if (!athletes.length) return { avgScore:"0.0", strongPercent:0, totalAthletes:0 };
-  let totalScore=0, totalStrong=0;
-  const totalV = athletes.length * 7;
-  athletes.forEach(a => {
-    const s = Object.values(a.scores||{});
-    totalScore += s.reduce((a,b)=>a+b,0);
-    totalStrong += s.filter(v=>v===3).length;
+
+<!-- API Key Setup Modal -->
+<div id="api-setup">
+  <div class="api-card">
+    <div class="fredoka text-4xl mb-2">🧸</div>
+    <h1 class="fredoka text-3xl mb-1" style="color:var(--gold)">Stock Gains Kid Assistant</h1>
+    <p class="text-sm text-gray-400 mb-6">Let's get your free Finnhub key first! It's like the secret password to the toy store 🗝️</p>
+    <p class="text-xs text-gray-500 mb-3">Get yours free at <a href="https://finnhub.io" target="_blank" class="text-blue-400">finnhub.io</a> → Sign up → Copy API key</p>
+    <input type="text" id="api-key-input" placeholder="Paste your Finnhub API key here..." class="w-full mb-3 text-center" style="padding:12px;">
+    <button class="btn btn-gold w-full text-base" onclick="saveApiKey()">Let's Go! 🚀</button>
+    <div id="api-error" class="text-red-400 text-sm mt-3 hidden"></div>
+  </div>
+</div>
+
+<!-- Tour Overlay -->
+<div id="tour-overlay"></div>
+<div id="tour-box" style="display:none;">
+  <div id="tour-step-indicator" class="text-xs text-gray-500 mb-1"></div>
+  <div id="tour-emoji" class="text-4xl mb-2"></div>
+  <div id="tour-title" class="fredoka text-xl mb-2" style="color:var(--gold)"></div>
+  <div id="tour-text" class="text-sm leading-relaxed text-gray-200 mb-4"></div>
+  <div id="tour-action" class="mb-4"></div>
+  <div class="disclaimer" id="tour-disclaimer" style="display:none;">
+    ⚠️ This is only pretend practice. Not real money. Not financial advice. Past games don't always win future games. Dividends can change and might stop. Always have a grown-up help with real money!
+  </div>
+  <div class="flex gap-2 mt-4">
+    <button class="btn btn-ghost btn-sm" onclick="skipTour()">Skip 🏃</button>
+    <div class="flex-1"></div>
+    <button id="tour-prev-btn" class="btn btn-ghost btn-sm" onclick="tourPrev()" style="display:none;">← Back</button>
+    <button id="tour-next-btn" class="btn btn-accent btn-sm" onclick="tourNext()">Next →</button>
+  </div>
+</div>
+
+<!-- Main App -->
+<div id="app" style="display:none; flex-direction:column; min-height:100vh;">
+
+  <!-- Header -->
+  <header class="flex items-center justify-between px-4 py-3" style="background:var(--panel); border-bottom:1px solid var(--border);">
+    <div class="flex items-center gap-3">
+      <span class="fredoka text-2xl" style="color:var(--gold)">📈 Stock Gains Kid Assistant 🧸</span>
+    </div>
+    <div class="flex items-center gap-3">
+      <div id="ws-status" class="text-xs px-2 py-1 rounded" style="background:#1c2333;">⚡ Connecting...</div>
+      <button class="btn btn-gold btn-sm" onclick="startTour()" id="tour-restart-btn">Tell me like I'm five 🧸</button>
+      <button class="btn btn-ghost btn-sm" onclick="changeApiKey()">🔑 Key</button>
+    </div>
+  </header>
+
+  <!-- Body Layout -->
+  <div id="main-layout" class="flex flex-1" style="overflow:hidden; height:calc(100vh - 57px);">
+
+    <!-- Sidebar -->
+    <div id="sidebar" style="width:220px; border-right:1px solid var(--border); background:var(--panel); overflow-y:auto; flex-shrink:0;">
+      <div class="p-3">
+        <div class="panel-title">📋 Watchlist</div>
+        <div class="flex gap-1 mb-3">
+          <input type="text" id="add-symbol-input" placeholder="SYMBOL" style="width:90px; text-transform:uppercase;" maxlength="6">
+          <button class="btn btn-accent btn-sm" onclick="addSymbol()">+</button>
+        </div>
+        <div id="watchlist-container"></div>
+      </div>
+    </div>
+
+    <!-- Main Area -->
+    <div class="flex-1 overflow-y-auto p-3" style="background:var(--bg);">
+
+      <!-- Symbol Header -->
+      <div class="flex items-center justify-between mb-3">
+        <div>
+          <span id="selected-symbol" class="fredoka text-3xl" style="color:var(--accent)">AAPL</span>
+          <span id="selected-name" class="text-sm text-gray-400 ml-2"></span>
+          <span id="selected-price" class="fredoka text-2xl ml-3">--</span>
+          <span id="selected-change" class="text-sm ml-2"></span>
+          <span id="tree-badge" class="hidden ml-2 tree-glow" title="Magic Money Tree!">🌳</span>
+        </div>
+        <div class="flex gap-2 flex-wrap">
+          <button class="tab-btn active" data-tab="chart" onclick="switchTab(this,'chart')">📈 Chart</button>
+          <button class="tab-btn" data-tab="signals" onclick="switchTab(this,'signals')">✨ Signals</button>
+          <button class="tab-btn" data-tab="portfolio" onclick="switchTab(this,'portfolio')">💰 Portfolio</button>
+          <button class="tab-btn" data-tab="backtest" onclick="switchTab(this,'backtest')">🔬 Backtest</button>
+          <button class="tab-btn" data-tab="trees" onclick="switchTab(this,'trees')">🌳 Money Trees</button>
+        </div>
+      </div>
+
+      <!-- TAB: Chart -->
+      <div id="tab-chart" class="tab-content">
+        <div class="panel mb-3">
+          <div class="flex items-center gap-2 mb-3 flex-wrap">
+            <span class="text-xs text-gray-400 font-bold">Range:</span>
+            <button class="tab-btn active" data-range="7" onclick="selectRange(this,7)">7D</button>
+            <button class="tab-btn" data-range="30" onclick="selectRange(this,30)">1M</button>
+            <button class="tab-btn" data-range="90" onclick="selectRange(this,90)">3M</button>
+            <button class="tab-btn" data-range="365" onclick="selectRange(this,365)">1Y</button>
+            <span class="text-xs text-gray-400 font-bold ml-3">Indicators:</span>
+            <span class="ind-toggle" id="ind-sma50" onclick="toggleInd('sma50')">SMA50</span>
+            <span class="ind-toggle" id="ind-sma200" onclick="toggleInd('sma200')">SMA200</span>
+            <span class="ind-toggle" id="ind-ema12" onclick="toggleInd('ema12')">EMA12</span>
+            <span class="ind-toggle" id="ind-bb" onclick="toggleInd('bb')">Bollinger</span>
+          </div>
+          <div id="chart-wrap">
+            <div id="chart-loading" class="flex items-center justify-center h-full">
+              <div class="spinner"></div>
+            </div>
+            <canvas id="price-chart" style="display:none;"></canvas>
+          </div>
+        </div>
+        <!-- RSI + MACD sub-charts -->
+        <div class="panel mb-3">
+          <div class="flex gap-2 mb-2">
+            <span class="ind-toggle" id="ind-rsi" onclick="toggleInd('rsi')">RSI(14)</span>
+            <span class="ind-toggle" id="ind-macd" onclick="toggleInd('macd')">MACD</span>
+          </div>
+          <div id="sub-chart-wrap" style="height:120px; display:none;">
+            <canvas id="sub-chart"></canvas>
+          </div>
+          <div id="sub-chart-placeholder" class="text-center text-xs text-gray-500 py-4">Toggle RSI or MACD above 👆</div>
+        </div>
+        <!-- News -->
+        <div class="panel">
+          <div class="panel-title">📰 Latest News</div>
+          <div id="news-container" class="scroll-panel text-sm text-gray-300"></div>
+        </div>
+      </div>
+
+      <!-- TAB: Signals -->
+      <div id="tab-signals" class="tab-content hidden">
+        <div class="panel mb-3">
+          <div class="panel-title">✨ Magic Signals for <span id="sig-symbol"></span></div>
+          <p class="text-xs text-gray-400 mb-3">These are pretend clues that traders look for — like reading the weather before going outside! ☀️</p>
+          <div id="signals-list" class="space-y-2"></div>
+          <button class="btn btn-accent btn-sm mt-4" onclick="runSignals()">🔄 Refresh Signals</button>
+        </div>
+      </div>
+
+      <!-- TAB: Portfolio -->
+      <div id="tab-portfolio" class="tab-content hidden">
+        <div class="grid grid-cols-1 gap-3" style="grid-template-columns: repeat(auto-fit, minmax(280px,1fr));">
+          <!-- Balance -->
+          <div class="panel">
+            <div class="panel-title">💰 My Pretend Money</div>
+            <div class="fredoka text-3xl mb-1" style="color:var(--green)" id="cash-display">$10,000.00</div>
+            <div class="text-xs text-gray-400">Pretend starting money</div>
+            <div class="mt-3 text-sm">Total Snack Money Earned: <span id="total-dividends" class="font-bold" style="color:var(--gold)">$0.00</span> 🍪</div>
+          </div>
+          <!-- Trade -->
+          <div class="panel">
+            <div class="panel-title">🛒 Make a Pretend Trade</div>
+            <div class="flex flex-col gap-2">
+              <div class="flex gap-2">
+                <select id="trade-side" class="flex-1">
+                  <option value="buy">Buy 🟢</option>
+                  <option value="sell">Sell 🔴</option>
+                </select>
+                <input type="number" id="trade-shares" placeholder="Shares" min="1" value="1" style="width:80px;">
+              </div>
+              <div class="flex gap-2">
+                <input type="number" id="trade-stop" placeholder="Stop-Loss $" style="flex:1;">
+                <input type="number" id="trade-target" placeholder="Target $" style="flex:1;">
+              </div>
+              <button class="btn btn-green" onclick="executeTrade()">Execute Trade 🚀</button>
+              <div id="trade-msg" class="text-xs text-center"></div>
+            </div>
+          </div>
+        </div>
+        <!-- Positions -->
+        <div class="panel mt-3">
+          <div class="panel-title">📦 My Positions</div>
+          <div id="positions-container">
+            <div class="text-sm text-gray-500 text-center py-4">No positions yet — make a pretend trade above! 👆</div>
+          </div>
+        </div>
+        <!-- Trade history -->
+        <div class="panel mt-3">
+          <div class="panel-title">📜 Trade History</div>
+          <div id="trade-history" class="scroll-panel text-sm"></div>
+        </div>
+      </div>
+
+      <!-- TAB: Backtest -->
+      <div id="tab-backtest" class="tab-content hidden">
+
+        <!-- Config panel -->
+        <div class="panel mb-3">
+          <div class="panel-title">🔬 Rigorous Backtest Engine</div>
+          <p class="text-xs text-gray-400 mb-3">Institutional-grade simulation on real Finnhub daily candles. Includes slippage, commissions, proper exit logic, Sharpe ratio, and statistical confidence scoring.</p>
+
+          <div class="grid gap-2 mb-3" style="grid-template-columns:repeat(auto-fit,minmax(200px,1fr));">
+            <div>
+              <div class="text-xs text-gray-400 mb-1">Strategy</div>
+              <select id="bt-strategy" class="w-full">
+                <option value="golden_cross">🤗 Golden Cross (SMA50 > SMA200)</option>
+                <option value="bouncy_ball">🏀 RSI Oversold Bounce (&lt;30→30)</option>
+                <option value="rubber_band">🎯 Bollinger Band Breakout</option>
+                <option value="macd_dance">💃 MACD Bullish Cross</option>
+                <option value="rocket">🚀 20-Day High Breakout + Volume</option>
+                <option value="big_party">🎉 Above SMA200 + Volume Surge</option>
+                <option value="fast_slow">⚡ EMA Stack (9>21>50>200)</option>
+                <option value="hammer">🔨 Hammer Candle at Low</option>
+                <option value="money_tree">🌳 Dividend Growth (Yield >2.5%)</option>
+              </select>
+            </div>
+            <div>
+              <div class="text-xs text-gray-400 mb-1">Lookback Period</div>
+              <select id="bt-range" class="w-full">
+                <option value="180">6 Months</option>
+                <option value="365" selected>1 Year</option>
+                <option value="730">2 Years</option>
+              </select>
+            </div>
+            <div>
+              <div class="text-xs text-gray-400 mb-1">Exit Rule</div>
+              <select id="bt-exit" class="w-full">
+                <option value="atr">ATR-based Stop + 2:1 Target (default)</option>
+                <option value="fixed10">Fixed 10-Day Hold</option>
+                <option value="fixed20">Fixed 20-Day Hold</option>
+                <option value="signal">Hold Until Opposite Signal</option>
+              </select>
+            </div>
+            <div>
+              <div class="text-xs text-gray-400 mb-1">Position Sizing</div>
+              <select id="bt-sizing" class="w-full">
+                <option value="fixed">Fixed $10,000 per Trade</option>
+                <option value="risk1">Risk 1% of Equity per Trade</option>
+                <option value="risk2">Risk 2% of Equity per Trade</option>
+                <option value="half">Half-Kelly (signal strength)</option>
+              </select>
+            </div>
+            <div>
+              <div class="text-xs text-gray-400 mb-1">Commission per Trade</div>
+              <select id="bt-commission" class="w-full">
+                <option value="0">$0 (Robinhood style)</option>
+                <option value="1" selected>$1 flat</option>
+                <option value="5">$5 flat</option>
+                <option value="0.001">0.1% of trade value</option>
+              </select>
+            </div>
+            <div>
+              <div class="text-xs text-gray-400 mb-1">Slippage (per share)</div>
+              <select id="bt-slippage" class="w-full">
+                <option value="0">$0 (ideal)</option>
+                <option value="0.01" selected>$0.01 (liquid stock)</option>
+                <option value="0.05">$0.05 (normal)</option>
+                <option value="0.10">$0.10 (illiquid)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="flex gap-4 flex-wrap mb-3">
+            <label class="flex items-center gap-2 text-sm cursor-pointer">
+              <input type="checkbox" id="bt-dividends"> Reinvest dividends 🌳
+            </label>
+            <label class="flex items-center gap-2 text-sm cursor-pointer">
+              <input type="checkbox" id="bt-no-overnight" > No overnight holds (day-trade mode)
+            </label>
+            <label class="flex items-center gap-2 text-sm cursor-pointer">
+              <input type="checkbox" id="bt-monte-carlo" checked> Run Monte Carlo (200 simulations)
+            </label>
+          </div>
+
+          <button class="btn btn-accent" onclick="runBacktest()">Run Rigorous Backtest 🔬</button>
+        </div>
+
+        <!-- Loading -->
+        <div id="backtest-loading" class="panel text-center py-8 hidden">
+          <div class="spinner mx-auto mb-3"></div>
+          <div id="bt-loading-msg" class="text-sm text-gray-400">Fetching candles...</div>
+        </div>
+
+        <!-- Results -->
+        <div id="backtest-results" class="hidden">
+
+          <!-- Reliability banner -->
+          <div id="bt-reliability-banner" class="panel mb-3"></div>
+
+          <!-- Core metrics grid -->
+          <div class="grid gap-3 mb-3" style="grid-template-columns:repeat(auto-fit,minmax(140px,1fr));">
+            <div class="panel text-center">
+              <div class="text-xs text-gray-400 mb-1">Net Strategy Return</div>
+              <div id="bt-strat-return" class="fredoka text-2xl"></div>
+              <div class="text-xs text-gray-500" id="bt-strat-cagr"></div>
+            </div>
+            <div class="panel text-center">
+              <div class="text-xs text-gray-400 mb-1">Buy &amp; Hold Return</div>
+              <div id="bt-bah-return" class="fredoka text-2xl"></div>
+              <div class="text-xs text-gray-500" id="bt-bah-cagr"></div>
+            </div>
+            <div class="panel text-center">
+              <div class="text-xs text-gray-400 mb-1">Alpha vs B&amp;H</div>
+              <div id="bt-alpha" class="fredoka text-2xl"></div>
+              <div class="text-xs text-gray-500">outperformance</div>
+            </div>
+            <div class="panel text-center">
+              <div class="text-xs text-gray-400 mb-1">Sharpe Ratio</div>
+              <div id="bt-sharpe" class="fredoka text-2xl"></div>
+              <div class="text-xs text-gray-500">risk-adj return</div>
+            </div>
+            <div class="panel text-center">
+              <div class="text-xs text-gray-400 mb-1">Sortino Ratio</div>
+              <div id="bt-sortino" class="fredoka text-2xl"></div>
+              <div class="text-xs text-gray-500">downside only</div>
+            </div>
+            <div class="panel text-center">
+              <div class="text-xs text-gray-400 mb-1">Win Rate</div>
+              <div id="bt-win-rate" class="fredoka text-2xl"></div>
+              <div class="text-xs text-gray-500" id="bt-win-detail"></div>
+            </div>
+            <div class="panel text-center">
+              <div class="text-xs text-gray-400 mb-1">Profit Factor</div>
+              <div id="bt-profit-factor" class="fredoka text-2xl"></div>
+              <div class="text-xs text-gray-500">gross wins/losses</div>
+            </div>
+            <div class="panel text-center">
+              <div class="text-xs text-gray-400 mb-1">Max Drawdown</div>
+              <div id="bt-drawdown" class="fredoka text-2xl"></div>
+              <div class="text-xs text-gray-500" id="bt-drawdown-dur"></div>
+            </div>
+            <div class="panel text-center">
+              <div class="text-xs text-gray-400 mb-1">Avg Win / Avg Loss</div>
+              <div id="bt-expectancy" class="fredoka text-2xl"></div>
+              <div class="text-xs text-gray-500">expectancy ratio</div>
+            </div>
+            <div class="panel text-center">
+              <div class="text-xs text-gray-400 mb-1">Total Trades</div>
+              <div id="bt-trades" class="fredoka text-2xl"></div>
+              <div class="text-xs text-gray-500" id="bt-trade-freq"></div>
+            </div>
+            <div class="panel text-center">
+              <div class="text-xs text-gray-400 mb-1">Avg Hold (days)</div>
+              <div id="bt-avg-hold" class="fredoka text-2xl"></div>
+              <div class="text-xs text-gray-500">per trade</div>
+            </div>
+            <div class="panel text-center">
+              <div class="text-xs text-gray-400 mb-1">Dividend Boost</div>
+              <div id="bt-div-return" class="fredoka text-2xl">--</div>
+              <div class="text-xs text-gray-500">reinvested</div>
+            </div>
+          </div>
+
+          <!-- Equity curve chart -->
+          <div class="panel mb-3">
+            <div class="text-sm font-bold mb-2" style="color:var(--gold)">📈 Equity Curve vs Buy &amp; Hold</div>
+            <div style="height:200px;"><canvas id="bt-equity-chart"></canvas></div>
+          </div>
+
+          <!-- Monte Carlo results -->
+          <div id="bt-mc-panel" class="panel mb-3 hidden">
+            <div class="text-sm font-bold mb-2" style="color:var(--gold)">🎲 Monte Carlo Simulation (200 runs — shuffled trade order)</div>
+            <p class="text-xs text-gray-400 mb-3">Randomly shuffles the order of historical trades 200 times to test if results are robust or just lucky sequencing.</p>
+            <div style="height:160px;"><canvas id="bt-mc-chart"></canvas></div>
+            <div class="grid gap-2 mt-3" style="grid-template-columns:repeat(auto-fit,minmax(130px,1fr));">
+              <div class="text-center p-2 rounded-xl" style="background:#1c2333;">
+                <div class="text-xs text-gray-400">5th Percentile</div>
+                <div id="bt-mc-p5" class="font-bold text-sm"></div>
+              </div>
+              <div class="text-center p-2 rounded-xl" style="background:#1c2333;">
+                <div class="text-xs text-gray-400">Median</div>
+                <div id="bt-mc-p50" class="font-bold text-sm"></div>
+              </div>
+              <div class="text-center p-2 rounded-xl" style="background:#1c2333;">
+                <div class="text-xs text-gray-400">95th Percentile</div>
+                <div id="bt-mc-p95" class="font-bold text-sm"></div>
+              </div>
+              <div class="text-center p-2 rounded-xl" style="background:#1c2333;">
+                <div class="text-xs text-gray-400">% Profitable Runs</div>
+                <div id="bt-mc-profitable" class="font-bold text-sm"></div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Trade log -->
+          <div class="panel mb-3">
+            <div class="text-sm font-bold mb-2" style="color:var(--gold)">📋 Trade Log</div>
+            <div id="bt-trade-log" class="scroll-panel text-xs" style="max-height:200px;"></div>
+          </div>
+
+          <!-- Interpretation -->
+          <div class="panel" id="bt-explanation"></div>
+
+        </div>
+      </div>
+
+      <!-- TAB: Money Trees -->
+      <div id="tab-trees" class="tab-content hidden">
+        <div class="panel mb-3">
+          <div class="panel-title">🌳 Magic Money Trees</div>
+          <p class="text-sm text-gray-400 mb-4">Some stocks are like magic trees 🌳 — they drop <strong style="color:var(--gold)">snacks (dividends)</strong> into your pocket every 3 months just for owning them! The best trees ALSO slowly grow taller (price goes up). Double win! 🎉</p>
+          <div id="trees-container" class="grid gap-3" style="grid-template-columns:repeat(auto-fill,minmax(260px,1fr));"></div>
+          <button class="btn btn-gold btn-sm mt-4" onclick="loadAllTreeData()">🔄 Refresh Tree Data</button>
+        </div>
+      </div>
+
+    </div><!-- end main area -->
+  </div><!-- end layout -->
+
+  <!-- Footer -->
+  <footer class="text-center text-xs text-gray-600 py-2 px-4" style="border-top:1px solid var(--border);">
+    Made as a fun learning toy — have fun and learn! 🎓 | Not financial advice | Always ask a grown-up about real money! 💪
+  </footer>
+</div><!-- end app -->
+
+<script>
+// =====================================================================
+// GLOBAL STATE
+// =====================================================================
+let API_KEY = '';
+let socket = null;
+let wsConnected = false;
+let currentSymbol = 'AAPL';
+let currentCandles = null;
+let currentRange = 7;
+let priceChart = null;
+let subChart = null;
+let liveSubscriptions = new Set();
+let indicators = { sma50: false, sma200: false, ema12: false, bb: false, rsi: false, macd: false };
+
+const DEFAULT_SYMBOLS = ['AAPL','TSLA','NVDA','SPY','KO'];
+let watchlist = JSON.parse(localStorage.getItem('sgka_watchlist') || JSON.stringify(DEFAULT_SYMBOLS));
+let prices = JSON.parse(localStorage.getItem('sgka_prices') || '{}');
+let portfolio = JSON.parse(localStorage.getItem('sgka_portfolio') || JSON.stringify({
+  cash: 10000,
+  positions: {},
+  history: [],
+  totalDividends: 0,
+  snackTimers: {}
+}));
+let tourStep = 0;
+let tourData = null;
+let tourHighlightEl = null;
+
+// =====================================================================
+// MATH / INDICATOR UTILITIES
+// =====================================================================
+function calcSMA(data, period) {
+  return data.map((_, i) => {
+    if (i < period - 1) return null;
+    const slice = data.slice(i - period + 1, i + 1);
+    return slice.reduce((a, b) => a + b, 0) / period;
   });
-  return { avgScore:(totalScore/totalV).toFixed(1), strongPercent:Math.round(totalStrong/totalV*100), totalAthletes:athletes.length };
 }
- 
-function progressBg(pct) {
-  return pct > 80 ? "linear-gradient(90deg,#00b36b,#34d399)" : pct > 50 ? "linear-gradient(90deg,#ff8c00,#ffaa00)" : "#dc3545";
+
+function calcEMA(data, period) {
+  const k = 2 / (period + 1);
+  const result = new Array(data.length).fill(null);
+  let ema = data[0];
+  result[0] = ema;
+  for (let i = 1; i < data.length; i++) {
+    ema = data[i] * k + ema * (1 - k);
+    result[i] = ema;
+  }
+  return result;
 }
- 
-// ─── MODAL ────────────────────────────────────────────────────────────────────
-function Modal({ title, onClose, children, wide }) {
-  useEffect(() => {
-    document.body.style.overflow = "hidden";
-    return () => { document.body.style.overflow = ""; };
-  }, []);
-  return (
-    <div className="modal-wrap" style={{position:"fixed",inset:0,background:"rgba(0,0,0,0.75)",zIndex:500,display:"flex",alignItems:"center",justifyContent:"center"}}
-         onClick={e=>e.target===e.currentTarget&&onClose()}>
-      <div className="modal-inner" style={{background:"#fff",borderRadius:16,width:"94%",maxWidth:wide?760:560,maxHeight:"92vh",overflow:"hidden",boxShadow:"0 25px 70px rgba(0,0,0,0.3)",display:"flex",flexDirection:"column"}}>
-        <div style={{padding:"16px 20px",borderBottom:`1px solid ${C.border}`,display:"flex",justifyContent:"space-between",alignItems:"center",flexShrink:0}}>
-          <span style={{fontSize:20,fontWeight:800,color:C.orange}}>{title}</span>
-          <button onClick={onClose} style={{fontSize:24,background:"none",border:"none",color:"#666",lineHeight:1,padding:"0 4px"}}>✕</button>
-        </div>
-        <div style={{padding:20,overflowY:"auto",flex:1}}>{children}</div>
-      </div>
-    </div>
-  );
+
+function calcRSI(data, period = 14) {
+  const result = new Array(data.length).fill(null);
+  let avgGain = 0, avgLoss = 0;
+  for (let i = 1; i <= period; i++) {
+    const d = data[i] - data[i-1];
+    if (d > 0) avgGain += d; else avgLoss += Math.abs(d);
+  }
+  avgGain /= period; avgLoss /= period;
+  result[period] = avgLoss === 0 ? 100 : 100 - 100 / (1 + avgGain / avgLoss);
+  for (let i = period + 1; i < data.length; i++) {
+    const d = data[i] - data[i-1];
+    avgGain = (avgGain * (period-1) + Math.max(d,0)) / period;
+    avgLoss = (avgLoss * (period-1) + Math.max(-d,0)) / period;
+    result[i] = avgLoss === 0 ? 100 : 100 - 100 / (1 + avgGain / avgLoss);
+  }
+  return result;
 }
- 
-// ─── CONFIRM MODAL ────────────────────────────────────────────────────────────
-function ConfirmModal({ title, message, warning, confirmLabel, confirmColor, onConfirm, onCancel }) {
-  return (
-    <Modal title={title} onClose={onCancel}>
-      <p style={{fontSize:16,marginBottom:16}}>{message}</p>
-      {warning && <p style={{color:C.red,marginBottom:24,fontWeight:600}}>{warning}</p>}
-      <div style={{display:"flex",gap:12,justifyContent:"flex-end",flexWrap:"wrap"}}>
-        <button onClick={onCancel} style={{padding:"12px 24px",border:"none",background:"#ddd",borderRadius:10,fontWeight:700}}>Cancel</button>
-        <button onClick={onConfirm} style={{padding:"12px 28px",border:"none",background:confirmColor||C.red,color:"#fff",borderRadius:10,fontWeight:700}}>{confirmLabel||"Confirm"}</button>
-      </div>
-    </Modal>
-  );
+
+function calcMACD(data) {
+  const ema12 = calcEMA(data, 12);
+  const ema26 = calcEMA(data, 26);
+  const macdLine = ema12.map((v, i) => (v !== null && ema26[i] !== null) ? v - ema26[i] : null);
+  const validMacd = macdLine.filter(v => v !== null);
+  const signal = calcEMA(validMacd, 9);
+  const signalFull = new Array(data.length).fill(null);
+  let si = 0;
+  for (let i = 0; i < data.length; i++) {
+    if (macdLine[i] !== null) { signalFull[i] = signal[si++]; }
+  }
+  const hist = macdLine.map((v, i) => (v !== null && signalFull[i] !== null) ? v - signalFull[i] : null);
+  return { macd: macdLine, signal: signalFull, hist };
 }
- 
-// ─── INSTRUCTIONS MODAL ───────────────────────────────────────────────────────
-function HelpModal({ onClose }) {
-  const [tab, setTab] = useState("start");
-  const tabs = [
-    { id:"start",  label:"🏁 Getting Started" },
-    { id:"teams",  label:"👥 Teams" },
-    { id:"athletes", label:"🏃 Athletes" },
-    { id:"virtues", label:"✝️ The Seven Virtues" },
-    { id:"scoring", label:"📊 Scoring" },
-  ];
-  return (
-    <Modal title="How to Use Away Game" onClose={onClose} wide>
-      <div style={{display:"flex",gap:8,flexWrap:"wrap",marginBottom:20}}>
-        {tabs.map(t => (
-          <button key={t.id} onClick={()=>setTab(t.id)}
-            style={{padding:"8px 14px",borderRadius:20,border:`2px solid ${tab===t.id?C.orange:C.border}`,
-              background:tab===t.id?C.orange:"#fff",color:tab===t.id?"#fff":C.text,fontWeight:700,fontSize:13}}>
-            {t.label}
-          </button>
-        ))}
-      </div>
- 
-      {tab==="start" && (
-        <div>
-          <p style={{fontSize:16,marginBottom:16}}>
-            <strong>Away Game</strong> is a character-tracking tool for Christian coaches and parents. It helps you see the whole athlete — not just their stats, but their soul.
-          </p>
-          <HelpStep n={1} title="Create a Team">
-            Tap <strong>+ New Team</strong> in the team selector at the top. Name it after your squad (e.g., "14U Blue Jays"). You can run multiple teams at once.
-          </HelpStep>
-          <HelpStep n={2} title="Add Athletes">
-            Inside a team, tap <strong>+ Add Athlete</strong>. Enter the player's name and optional position/role. Score them on each of the 7 virtues.
-          </HelpStep>
-          <HelpStep n={3} title="Review & Develop">
-            Tap any athlete card to open their full profile. Use the <strong>Profile</strong>, <strong>Develop</strong>, and <strong>Notes</strong> tabs to assess, plan, and pray.
-          </HelpStep>
-          <HelpStep n={4} title="Track Progress Over Time">
-            Update scores after games, practices, or key moments. The "Last Updated" timestamp on each card keeps you honest.
-          </HelpStep>
-          <div style={{background:"#fff8f0",border:"2px solid #ff8c00",borderRadius:12,padding:16,marginTop:20}}>
-            <div style={{fontWeight:700,color:C.orange,marginBottom:6}}>⚡ Quick Tips</div>
-            <ul style={{paddingLeft:20,fontSize:14,color:C.textSub,lineHeight:2}}>
-              <li>Tap a card to view the full profile — swipe or scroll inside the modal</li>
-              <li>Long press on a player card shows the edit option</li>
-              <li>All data is saved locally on your device — no account needed</li>
-              <li>Add athletes to multiple teams by moving them from one roster to another</li>
-            </ul>
-          </div>
-        </div>
-      )}
- 
-      {tab==="teams" && (
-        <div>
-          <p style={{marginBottom:16,color:C.textSub}}>You can manage as many teams as you need — travel squad, rec league, school team, even a small group.</p>
-          <InfoCard icon="➕" title="Creating a Team">
-            Tap the team name at the top of the screen, then <strong>+ New Team</strong>. Give it a name and you're in.
-          </InfoCard>
-          <InfoCard icon="✏️" title="Renaming a Team">
-            From the team dropdown, tap the <strong>✏ Edit</strong> icon next to the team name. You can rename it anytime.
-          </InfoCard>
-          <InfoCard icon="🔀" title="Moving an Athlete Between Teams">
-            Open the athlete's profile and tap <strong>✏ Edit</strong>. At the bottom of the edit form, use <strong>Move to Team</strong> to reassign them. Their scores and notes travel with them.
-          </InfoCard>
-          <InfoCard icon="🗑️" title="Deleting a Team">
-            In the team dropdown, tap the trash icon. You'll be asked to confirm. <strong>Deleting a team removes all athletes on that team</strong> — make sure you move any players you want to keep first.
-          </InfoCard>
-        </div>
-      )}
- 
-      {tab==="athletes" && (
-        <div>
-          <InfoCard icon="➕" title="Adding an Athlete">
-            Tap <strong>+ Add Athlete</strong> on the main roster screen. Fill in their name, optional position, and score each of the 7 virtues from 0–3.
-          </InfoCard>
-          <InfoCard icon="📋" title="Viewing a Profile">
-            Tap any player card to open the full profile modal. Three tabs inside: <strong>Profile</strong> (current virtue breakdown), <strong>Develop</strong> (action steps), and <strong>Notes</strong> (your observations and prayers).
-          </InfoCard>
-          <InfoCard icon="✏️" title="Editing an Athlete">
-            From the player card, tap the <strong>✏ Edit</strong> button, or open the profile and tap Edit from there. You can update scores, name, role, and notes.
-          </InfoCard>
-          <InfoCard icon="🔀" title="Moving to Another Team">
-            Inside the edit form, scroll to the bottom and use the <strong>Move to Team</strong> dropdown. Select a destination team and save.
-          </InfoCard>
-          <InfoCard icon="🗑️" title="Deleting an Athlete">
-            Tap the 🗑 button on any player card. You will be asked to confirm before anything is deleted.
-          </InfoCard>
-        </div>
-      )}
- 
-      {tab==="virtues" && (
-        <div>
-          <p style={{marginBottom:16,color:C.textSub,fontSize:15}}>
-            The seven virtues are drawn from the Fruit of the Spirit (Galatians 5:22–23), adapted for the competitive sports context. They measure character, not performance.
-          </p>
-          {Object.values(VIRTUES).map(v => (
-            <div key={v.key} style={{display:"flex",gap:14,marginBottom:16,padding:14,background:v.bg,borderRadius:12,border:`1px solid ${C.border}`}}>
-              <span style={{fontSize:32,lineHeight:1}}>{v.icon}</span>
-              <div>
-                <div style={{fontWeight:800,color:v.color,fontSize:16}}>{v.label}</div>
-                <div style={{fontSize:13,color:C.textSub,fontStyle:"italic",marginBottom:4}}>"{v.tagline}"</div>
-                <div style={{fontSize:12,color:C.textMuted}}>{v.scoreMeaning}</div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
- 
-      {tab==="scoring" && (
-        <div>
-          <p style={{marginBottom:20,color:C.textSub}}>Each virtue is scored on a simple 0–3 scale. The goal isn't to grade kids — it's to give you a starting point for conversations and prayer.</p>
-          {[
-            { n:0, label:"Missing",   color:"#dc3545", desc:"This virtue is largely absent right now. Not a judgment — a starting point." },
-            { n:1, label:"Emerging",  color:"#fd7e14", desc:"You see glimpses. They're growing. Encourage what you do see." },
-            { n:2, label:"Developing",color:C.orange,  desc:"This is becoming a pattern. Reinforce and give it more room to grow." },
-            { n:3, label:"Strong",    color:C.green,   desc:"This virtue is consistently on display. Affirm it and help them own it." },
-          ].map(s => (
-            <div key={s.n} style={{display:"flex",gap:16,marginBottom:16,alignItems:"flex-start"}}>
-              <div style={{background:s.color,color:"#fff",borderRadius:10,width:36,height:36,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:18,flexShrink:0}}>{s.n}</div>
-              <div>
-                <div style={{fontWeight:700,fontSize:16}}>{s.label}</div>
-                <div style={{fontSize:14,color:C.textSub}}>{s.desc}</div>
-              </div>
-            </div>
-          ))}
-          <div style={{background:"#f0fff4",border:`2px solid ${C.green}`,borderRadius:12,padding:16,marginTop:8}}>
-            <div style={{fontWeight:700,color:C.green,marginBottom:6}}>🏆 Team Ratings</div>
-            <div style={{fontSize:14,color:C.textSub,lineHeight:1.8}}>
-              <strong>Kingdom Competitor</strong> — 5+ virtues at level 3<br/>
-              <strong>Strong Disciple</strong> — 6+ virtues at level 2 or higher<br/>
-              <strong>Developing Disciple</strong> — Still growing across the board
-            </div>
-          </div>
-        </div>
-      )}
-    </Modal>
-  );
+
+function calcBollinger(data, period = 20) {
+  const sma = calcSMA(data, period);
+  const upper = [], lower = [];
+  for (let i = 0; i < data.length; i++) {
+    if (sma[i] === null) { upper.push(null); lower.push(null); continue; }
+    const slice = data.slice(i - period + 1, i + 1);
+    const std = Math.sqrt(slice.reduce((sum, v) => sum + Math.pow(v - sma[i], 2), 0) / period);
+    upper.push(sma[i] + 2 * std);
+    lower.push(sma[i] - 2 * std);
+  }
+  return { upper, lower, mid: sma };
 }
- 
-function HelpStep({ n, title, children }) {
-  return (
-    <div style={{display:"flex",gap:14,marginBottom:16,alignItems:"flex-start"}}>
-      <div style={{background:C.orange,color:"#fff",borderRadius:"50%",width:30,height:30,display:"flex",alignItems:"center",justifyContent:"center",fontWeight:800,fontSize:14,flexShrink:0}}>{n}</div>
-      <div><div style={{fontWeight:700,marginBottom:2}}>{title}</div><div style={{fontSize:14,color:C.textSub}}>{children}</div></div>
-    </div>
-  );
+
+function calcATR(highs, lows, closes, period = 14) {
+  const tr = highs.map((h, i) => {
+    if (i === 0) return h - lows[i];
+    return Math.max(h - lows[i], Math.abs(h - closes[i-1]), Math.abs(lows[i] - closes[i-1]));
+  });
+  return calcSMA(tr, period);
 }
- 
-function InfoCard({ icon, title, children }) {
-  return (
-    <div style={{marginBottom:16,padding:16,background:"#fff",border:`1px solid ${C.border}`,borderRadius:12}}>
-      <div style={{display:"flex",gap:10,alignItems:"center",marginBottom:6}}>
-        <span style={{fontSize:20}}>{icon}</span>
-        <div style={{fontWeight:700,fontSize:15}}>{title}</div>
-      </div>
-      <div style={{fontSize:14,color:C.textSub,lineHeight:1.6}}>{children}</div>
-    </div>
-  );
+
+// =====================================================================
+// FINNHUB API
+// =====================================================================
+async function apiGet(path) {
+  const url = `https://finnhub.io/api/v1${path}&token=${API_KEY}`;
+  const r = await fetch(url);
+  if (!r.ok) throw new Error(`API ${r.status}: ${r.statusText}`);
+  return r.json();
 }
- 
-// ─── EDIT ATHLETE MODAL ───────────────────────────────────────────────────────
-function EditModal({ person, teams, currentTeamId, onSave, onClose }) {
-  const [data, setData] = useState({ ...person, notes: person.notes||"", teamId: currentTeamId });
-  const updateScore = (key, value) => setData(prev => ({ ...prev, scores: { ...prev.scores, [key]: Number(value) } }));
- 
-  return (
-    <Modal title={data.id ? "Edit Athlete" : "Add New Athlete"} onClose={onClose} wide>
-      <input placeholder="Athlete Name *" value={data.name||""} onChange={e=>setData({...data,name:e.target.value})}
-        style={{width:"100%",padding:14,fontSize:16,border:`2px solid ${C.border}`,borderRadius:10,marginBottom:12}} />
-      <input placeholder="Position / Role (optional)" value={data.role||""} onChange={e=>setData({...data,role:e.target.value})}
-        style={{width:"100%",padding:14,fontSize:16,border:`2px solid ${C.border}`,borderRadius:10,marginBottom:20}} />
- 
-      <div style={{marginBottom:20}}>
-        <div style={{fontWeight:700,color:C.orange,marginBottom:12}}>Score Each Virtue (0–3)</div>
-        {Object.values(VIRTUES).map(t => (
-          <div key={t.key} style={{marginBottom:14,padding:14,background:"#fafafa",border:`1px solid ${C.border}`,borderRadius:12}}>
-            <div style={{display:"flex",alignItems:"center",gap:10,marginBottom:6}}>
-              <span style={{fontSize:24}}>{t.icon}</span>
-              <div style={{flex:1,fontWeight:700,color:t.color,fontSize:15}}>{t.label}</div>
-              <span style={{fontSize:12,color:C.textMuted,background:"#fff",padding:"2px 8px",borderRadius:10,border:`1px solid ${C.border}`}}>{SCORE_LABELS[data.scores[t.key]]}</span>
-            </div>
-            <div style={{fontSize:12,color:"#555",marginBottom:8}}>{t.scoreMeaning}</div>
-            <div style={{display:"flex",gap:6}}>
-              {[0,1,2,3].map(n => (
-                <button key={n} onClick={()=>updateScore(t.key,n)}
-                  style={{flex:1,padding:"10px 4px",borderRadius:8,border:"none",
-                    background:data.scores[t.key]===n?C.orange:"#f1f3f5",
-                    color:data.scores[t.key]===n?"#fff":"#333",fontWeight:700,fontSize:15}}>
-                  {n}
-                </button>
-              ))}
-            </div>
-          </div>
-        ))}
-      </div>
- 
-      <div style={{marginBottom:20}}>
-        <div style={{fontWeight:700,marginBottom:8}}>Notes / Observations / Prayers</div>
-        <textarea value={data.notes} onChange={e=>setData({...data,notes:e.target.value})}
-          placeholder="Key moments, growth areas, specific prayers..."
-          style={{width:"100%",height:110,padding:14,border:`2px solid ${C.border}`,borderRadius:10,resize:"vertical",fontSize:14}} />
-      </div>
- 
-      {teams.length > 1 && (
-        <div style={{marginBottom:20}}>
-          <div style={{fontWeight:700,marginBottom:8}}>Team Assignment</div>
-          <select value={data.teamId} onChange={e=>setData({...data,teamId:e.target.value})}
-            style={{width:"100%",padding:12,fontSize:15,border:`2px solid ${C.border}`,borderRadius:10,background:"#fff"}}>
-            {teams.map(t => <option key={t.id} value={t.id}>{t.name}</option>)}
-          </select>
-          {data.teamId !== currentTeamId && (
-            <div style={{marginTop:8,fontSize:13,color:C.orange,fontWeight:600}}>⚡ This athlete will be moved to the selected team on save.</div>
-          )}
-        </div>
-      )}
- 
-      <div style={{display:"flex",gap:12,justifyContent:"flex-end",flexWrap:"wrap"}}>
-        <button onClick={onClose} style={{padding:"12px 24px",border:"none",background:"#ddd",borderRadius:10,fontWeight:700}}>Cancel</button>
-        <button onClick={()=>onSave(data)} disabled={!data.name?.trim()}
-          style={{padding:"12px 32px",border:"none",background:data.name?.trim()?C.orange:"#ccc",color:"#fff",borderRadius:10,fontWeight:700}}>
-          💾 Save
-        </button>
-      </div>
-    </Modal>
-  );
+
+async function fetchQuote(symbol) {
+  try {
+    return await apiGet(`/quote?symbol=${symbol}`);
+  } catch(e) { return null; }
 }
- 
-// ─── PERSON DETAIL MODAL ──────────────────────────────────────────────────────
-function PersonDetail({ person, onClose, onEdit, onDelete }) {
-  const [tab, setTab] = useState("assess");
-  const combo = getCombo(person.scores);
-  return (
-    <Modal title={person.name} onClose={onClose} wide>
-      <div style={{display:"flex",justifyContent:"space-between",alignItems:"flex-start",marginBottom:16,gap:12}}>
-        <div>
-          <div style={{fontSize:42,lineHeight:1}}>{combo.icon}</div>
-          <div style={{fontSize:20,fontWeight:800,color:combo.color,marginTop:4}}>{combo.label}</div>
-          <div style={{fontSize:13,color:C.textMuted}}>Avg {combo.avg}/3</div>
-        </div>
-        <div style={{display:"flex",gap:8,flexShrink:0}}>
-          <button onClick={()=>{ onEdit(person); onClose(); }}
-            style={{background:C.orange,color:"#fff",border:"none",padding:"10px 18px",borderRadius:10,fontWeight:700,fontSize:14}}>✏ Edit</button>
-          <button onClick={onDelete}
-            style={{background:"#fee2e2",color:C.red,border:"none",padding:"10px 14px",borderRadius:10,fontWeight:700,fontSize:14}}>🗑</button>
-        </div>
-      </div>
- 
-      <div style={{marginBottom:16}}>
-        <div style={{display:"flex",justifyContent:"space-between",fontSize:13,marginBottom:6}}>
-          <span style={{color:C.textMuted}}>Character Progress</span>
-          <span style={{fontWeight:700}}>{combo.progress}%</span>
-        </div>
-        <div className="progress-bar">
-          <div className="progress-fill" style={{width:`${combo.progress}%`,background:progressBg(combo.progress)}} />
-        </div>
-        <div style={{fontSize:12,color:C.textMuted,marginTop:4}}>
-          Last updated: {person.lastUpdated ? new Date(person.lastUpdated).toLocaleDateString() : "Never"}
-        </div>
-      </div>
- 
-      <div style={{display:"flex",borderBottom:`3px solid ${C.orange}`,marginBottom:16}}>
-        {["assess","develop","notes"].map(t => (
-          <button key={t} onClick={()=>setTab(t)}
-            style={{flex:1,padding:"12px 4px",fontWeight:700,fontSize:13,background:tab===t?C.orange:"#f1f3f5",color:tab===t?"#fff":"#333",border:"none"}}>
-            {t==="assess"?"📊 Profile":t==="develop"?"🛠 Develop":"📝 Notes"}
-          </button>
-        ))}
-      </div>
- 
-      {tab==="assess" && Object.entries(person.scores).map(([k,v]) => {
-        const t = VIRTUES[k];
-        const good = v >= 2;
-        return (
-          <div key={k} style={{marginBottom:14,background:"#fff",border:`2px solid ${t.border}`,borderRadius:12,overflow:"hidden"}}>
-            <div style={{background:t.bg,padding:"12px 16px",display:"flex",alignItems:"center",gap:12}}>
-              <span style={{fontSize:32}}>{t.icon}</span>
-              <div style={{flex:1,fontSize:17,fontWeight:800,color:t.color}}>{t.label}</div>
-              <div style={{textAlign:"right"}}>
-                <div style={{fontSize:18,fontWeight:800}}>{v}/3</div>
-                <div style={{fontSize:11,color:C.textMuted}}>{SCORE_LABELS[v]}</div>
-              </div>
-            </div>
-            <div style={{padding:"12px 16px"}}>
-              {(good ? t.strong : t.weak).map((s,i) => (
-                <div key={i} style={{marginBottom:4,fontSize:14,color:C.textSub}}>{good?"→":"–"} {s}</div>
-              ))}
-            </div>
-          </div>
-        );
-      })}
- 
-      {tab==="develop" && Object.entries(person.scores).map(([k,v]) => {
-        const t = VIRTUES[k];
-        return (
-          <div key={k} style={{marginBottom:14,background:"#fff",border:`2px solid ${t.border}`,borderRadius:12,overflow:"hidden"}}>
-            <div style={{background:t.bg,padding:"12px 16px",display:"flex",alignItems:"center",gap:12}}>
-              <span style={{fontSize:28}}>{t.icon}</span>
-              <div style={{fontSize:16,fontWeight:800,color:t.color,flex:1}}>{t.label}</div>
-              <span style={{fontSize:12,color:C.textMuted,background:"#fff",padding:"3px 10px",borderRadius:20,fontWeight:700,border:`1px solid ${C.border}`}}>{SCORE_LABELS[v]}</span>
-            </div>
-            <div style={{padding:"12px 16px"}}>
-              {t.develop.map((step,i) => (
-                <div key={i} style={{display:"flex",gap:10,marginBottom:10,alignItems:"flex-start"}}>
-                  <span style={{background:C.orange,color:"#fff",borderRadius:"50%",width:22,height:22,display:"flex",alignItems:"center",justifyContent:"center",fontSize:12,fontWeight:800,flexShrink:0}}>{i+1}</span>
-                  <span style={{fontSize:14,color:C.text,lineHeight:1.5}}>{step}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        );
-      })}
- 
-      {tab==="notes" && (
-        <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,padding:20,minHeight:180,whiteSpace:"pre-wrap",fontSize:14,color:person.notes?C.text:C.textMuted}}>
-          {person.notes || "No notes added yet.\n\nUse this space to record key moments, conversations, prayer requests, or anything God puts on your heart about this athlete."}
-        </div>
-      )}
-    </Modal>
-  );
+
+async function fetchCandles(symbol, days = 30) {
+  const to = Math.floor(Date.now() / 1000);
+  const from = to - days * 86400;
+  let resolution = 'D';
+  if (days <= 7) resolution = '60';
+  if (days <= 2) resolution = '5';
+  try {
+    const d = await apiGet(`/stock/candle?symbol=${symbol}&resolution=${resolution}&from=${from}&to=${to}`);
+    if (d.s !== 'ok') return null;
+    return d;
+  } catch(e) { return null; }
 }
- 
-// ─── TEAM NAME EDIT MODAL ─────────────────────────────────────────────────────
-function TeamNameModal({ team, onSave, onClose }) {
-  const [name, setName] = useState(team ? team.name : "");
-  return (
-    <Modal title={team ? "Rename Team" : "New Team"} onClose={onClose}>
-      <input autoFocus placeholder="Team name (e.g., '14U Blue Jays')" value={name}
-        onChange={e=>setName(e.target.value)} onKeyDown={e=>e.key==="Enter"&&name.trim()&&onSave(name.trim())}
-        style={{width:"100%",padding:14,fontSize:17,border:`2px solid ${C.border}`,borderRadius:10,marginBottom:20}} />
-      <div style={{display:"flex",gap:12,justifyContent:"flex-end"}}>
-        <button onClick={onClose} style={{padding:"12px 24px",border:"none",background:"#ddd",borderRadius:10,fontWeight:700}}>Cancel</button>
-        <button onClick={()=>name.trim()&&onSave(name.trim())} disabled={!name.trim()}
-          style={{padding:"12px 28px",border:"none",background:name.trim()?C.orange:"#ccc",color:"#fff",borderRadius:10,fontWeight:700}}>
-          {team ? "Rename" : "Create Team"}
-        </button>
-      </div>
-    </Modal>
-  );
+
+async function fetchNews(symbol) {
+  const to = new Date().toISOString().split('T')[0];
+  const from = new Date(Date.now() - 7*86400*1000).toISOString().split('T')[0];
+  try {
+    return await apiGet(`/company-news?symbol=${symbol}&from=${from}&to=${to}`);
+  } catch(e) { return []; }
 }
- 
-// ─── TEAM SWITCHER ────────────────────────────────────────────────────────────
-function TeamSwitcher({ teams, activeId, onSwitch, onNew, onRename, onDelete }) {
-  const [open, setOpen] = useState(false);
-  const active = teams.find(t=>t.id===activeId) || teams[0];
-  return (
-    <div style={{position:"relative"}}>
-      <button onClick={()=>setOpen(o=>!o)}
-        style={{display:"flex",alignItems:"center",gap:8,padding:"8px 14px",borderRadius:10,border:`2px solid ${C.orange}`,background:"#fff",fontWeight:700,fontSize:14,maxWidth:200}}>
-        <span style={{overflow:"hidden",textOverflow:"ellipsis",whiteSpace:"nowrap"}}>{active?.name||"My Team"}</span>
-        <span style={{flexShrink:0,color:C.orange}}>{open?"▲":"▼"}</span>
-      </button>
-      {open && (
-        <div style={{position:"absolute",top:"calc(100% + 8px)",left:0,background:"#fff",border:`1px solid ${C.border}`,borderRadius:12,boxShadow:"0 8px 30px rgba(0,0,0,0.15)",zIndex:100,minWidth:220,overflow:"hidden"}}>
-          {teams.map(t => (
-            <div key={t.id} style={{display:"flex",alignItems:"center",background:t.id===activeId?"#fff8f0":"#fff",borderBottom:`1px solid ${C.border}`}}>
-              <button onClick={()=>{onSwitch(t.id);setOpen(false);}}
-                style={{flex:1,padding:"12px 16px",background:"none",border:"none",textAlign:"left",fontWeight:t.id===activeId?700:400,color:t.id===activeId?C.orange:C.text,fontSize:14}}>
-                {t.id===activeId?"✓ ":""}{t.name}
-              </button>
-              <button onClick={()=>{onRename(t);setOpen(false);}}
-                style={{padding:"12px 10px",background:"none",border:"none",color:C.textMuted,fontSize:16}} title="Rename">✏</button>
-              {teams.length > 1 && (
-                <button onClick={()=>{onDelete(t);setOpen(false);}}
-                  style={{padding:"12px 10px",background:"none",border:"none",color:"#ffbbbb",fontSize:16}} title="Delete team">🗑</button>
-              )}
-            </div>
-          ))}
-          <button onClick={()=>{onNew();setOpen(false);}}
-            style={{width:"100%",padding:"12px 16px",background:"#fff8f0",border:"none",textAlign:"left",fontWeight:700,color:C.orange,fontSize:14}}>
-            ＋ New Team
-          </button>
-        </div>
-      )}
-      {open && <div style={{position:"fixed",inset:0,zIndex:99}} onClick={()=>setOpen(false)} />}
-    </div>
-  );
+
+async function fetchDividends(symbol) {
+  const to = new Date().toISOString().split('T')[0];
+  const from = new Date(Date.now() - 730*86400*1000).toISOString().split('T')[0];
+  try {
+    return await apiGet(`/stock/dividend?symbol=${symbol}&from=${from}&to=${to}`);
+  } catch(e) { return []; }
 }
- 
-// ─── MAIN APP ─────────────────────────────────────────────────────────────────
-function App() {
-  const [teams,    setTeams]    = useState(() => {
-    const saved = load("awaygame_teams_v2", null);
-    if (saved && saved.length) return saved;
-    // migrate old single-team data
-    const oldAthletes = load("awaygame_athletes_v1", []);
-    const defaultTeam = { id: uid(), name: "My Team" };
-    if (oldAthletes.length) {
-      const migrated = oldAthletes.map(a => ({...a, teamId: defaultTeam.id}));
-      save("awaygame_athletes_v2", migrated);
+
+async function fetchProfile(symbol) {
+  try {
+    return await apiGet(`/stock/profile2?symbol=${symbol}`);
+  } catch(e) { return null; }
+}
+
+async function fetchMetric(symbol) {
+  try {
+    return await apiGet(`/stock/metric?symbol=${symbol}&metric=all`);
+  } catch(e) { return null; }
+}
+
+// =====================================================================
+// WEBSOCKET
+// =====================================================================
+function connectWebSocket() {
+  if (!API_KEY) return;
+  try {
+    socket = new WebSocket(`wss://ws.finnhub.io?token=${API_KEY}`);
+    socket.onopen = () => {
+      wsConnected = true;
+      updateWsStatus(true);
+      watchlist.forEach(s => subscribeWs(s));
+    };
+    socket.onmessage = (e) => {
+      const data = JSON.parse(e.data);
+      if (data.type === 'trade' && data.data) {
+        data.data.forEach(t => {
+          const prev = prices[t.s];
+          prices[t.s] = { price: t.p, time: t.t };
+          updateWatchlistPrice(t.s, t.p, prev?.price);
+          if (t.s === currentSymbol) updateSelectedPrice(t.p, prev?.price);
+        });
+        localStorage.setItem('sgka_prices', JSON.stringify(prices));
+        checkSignalAlerts();
+      }
+    };
+    socket.onerror = socket.onclose = () => {
+      wsConnected = false;
+      updateWsStatus(false);
+      setTimeout(connectWebSocket, 10000);
+    };
+  } catch(e) {
+    updateWsStatus(false);
+    startPolling();
+  }
+}
+
+function subscribeWs(symbol) {
+  if (socket && wsConnected && !liveSubscriptions.has(symbol)) {
+    socket.send(JSON.stringify({ type:'subscribe', symbol }));
+    liveSubscriptions.add(symbol);
+  }
+}
+
+function updateWsStatus(connected) {
+  const el = document.getElementById('ws-status');
+  el.textContent = connected ? '⚡ Live' : '🔄 Polling';
+  el.style.color = connected ? 'var(--green)' : '#8b949e';
+}
+
+let pollInterval = null;
+function startPolling() {
+  if (pollInterval) return;
+  pollInterval = setInterval(async () => {
+    for (const sym of watchlist) {
+      const q = await fetchQuote(sym);
+      if (q && q.c) {
+        const prev = prices[sym];
+        prices[sym] = { price: q.c, time: Date.now() };
+        updateWatchlistPrice(sym, q.c, prev?.price);
+        if (sym === currentSymbol) updateSelectedPrice(q.c, prev?.price);
+      }
     }
-    return [defaultTeam];
+    localStorage.setItem('sgka_prices', JSON.stringify(prices));
+  }, 15000);
+}
+
+// =====================================================================
+// WATCHLIST UI
+// =====================================================================
+function renderWatchlist() {
+  const c = document.getElementById('watchlist-container');
+  c.innerHTML = '';
+  watchlist.forEach(sym => {
+    const div = document.createElement('div');
+    div.className = `watchlist-item ${sym === currentSymbol ? 'active' : ''}`;
+    div.id = `wl-${sym}`;
+    const p = prices[sym];
+    const priceStr = p ? `$${p.price.toFixed(2)}` : '--';
+    div.innerHTML = `
+      <div class="flex items-center justify-between">
+        <div>
+          <div class="font-bold text-sm">${sym}</div>
+          <div class="text-xs" id="wl-price-${sym}" style="color:var(--accent)">${priceStr}</div>
+        </div>
+        <button class="text-gray-600 hover:text-red-400 text-xs" onclick="removeSymbol('${sym}',event)">✕</button>
+      </div>`;
+    div.onclick = () => selectSymbol(sym);
+    c.appendChild(div);
   });
-  const [athletes, setAthletes] = useState(() => load("awaygame_athletes_v2", []));
-  const [activeTeamId, setActiveTeamId] = useState(() => {
-    const saved = load("awaygame_teams_v2", null);
-    return saved && saved.length ? saved[0].id : teams[0].id;
+}
+
+function updateWatchlistPrice(symbol, price, prevPrice) {
+  const el = document.getElementById(`wl-price-${symbol}`);
+  if (!el) return;
+  el.textContent = `$${price.toFixed(2)}`;
+  const up = !prevPrice || price >= prevPrice;
+  el.className = up ? 'text-xs price-up price-flash-up' : 'text-xs price-down price-flash-down';
+  setTimeout(() => {
+    el.className = up ? 'text-xs price-up' : 'text-xs price-down';
+  }, 600);
+}
+
+function updateSelectedPrice(price, prevPrice) {
+  const el = document.getElementById('selected-price');
+  el.textContent = `$${price.toFixed(2)}`;
+  const up = !prevPrice || price >= prevPrice;
+  el.style.color = up ? 'var(--green)' : 'var(--red)';
+}
+
+async function addSymbol() {
+  const input = document.getElementById('add-symbol-input');
+  const sym = input.value.trim().toUpperCase();
+  if (!sym || watchlist.includes(sym)) return;
+  watchlist.push(sym);
+  localStorage.setItem('sgka_watchlist', JSON.stringify(watchlist));
+  input.value = '';
+  renderWatchlist();
+  subscribeWs(sym);
+  const q = await fetchQuote(sym);
+  if (q && q.c) {
+    prices[sym] = { price: q.c };
+    updateWatchlistPrice(sym, q.c, null);
+  }
+}
+
+function removeSymbol(symbol, e) {
+  e.stopPropagation();
+  watchlist = watchlist.filter(s => s !== symbol);
+  localStorage.setItem('sgka_watchlist', JSON.stringify(watchlist));
+  if (symbol === currentSymbol && watchlist.length > 0) selectSymbol(watchlist[0]);
+  renderWatchlist();
+}
+
+// =====================================================================
+// SYMBOL SELECTION & CHART
+// =====================================================================
+async function selectSymbol(symbol) {
+  currentSymbol = symbol;
+  document.getElementById('selected-symbol').textContent = symbol;
+  document.getElementById('sig-symbol').textContent = symbol;
+  document.querySelectorAll('.watchlist-item').forEach(el => el.classList.remove('active'));
+  const wl = document.getElementById(`wl-${symbol}`);
+  if (wl) wl.classList.add('active');
+  const p = prices[symbol];
+  if (p) updateSelectedPrice(p.price, null);
+  // Update position meter if in portfolio tab
+  renderPositions();
+  await loadChart();
+  await loadNews();
+  await checkTreeBadge();
+}
+
+async function loadChart() {
+  document.getElementById('chart-loading').style.display = 'flex';
+  document.getElementById('price-chart').style.display = 'none';
+  const candles = await fetchCandles(currentSymbol, currentRange);
+  if (!candles) {
+    document.getElementById('chart-loading').innerHTML = '<div class="text-red-400 text-sm">⚠️ Could not load chart data. Check API key or rate limits.</div>';
+    return;
+  }
+  currentCandles = candles;
+  renderChart(candles);
+  // Also update selected price from candle
+  const lastClose = candles.c[candles.c.length-1];
+  if (!prices[currentSymbol]) {
+    prices[currentSymbol] = { price: lastClose };
+    updateSelectedPrice(lastClose, null);
+  }
+  document.getElementById('chart-loading').style.display = 'none';
+  document.getElementById('price-chart').style.display = 'block';
+  // Run signals if on signals tab
+  if (!document.getElementById('tab-signals').classList.contains('hidden')) {
+    runSignals();
+  }
+  renderSubChart();
+}
+
+function renderChart(candles) {
+  const labels = candles.t.map(t => new Date(t*1000).toLocaleDateString('en-US',{month:'short',day:'numeric'}));
+  const closes = candles.c;
+  const datasets = [{
+    label: currentSymbol,
+    data: closes,
+    borderColor: '#58a6ff',
+    backgroundColor: 'rgba(88,166,255,0.08)',
+    borderWidth: 2,
+    pointRadius: 0,
+    tension: 0.3,
+    fill: true
+  }];
+
+  if (indicators.sma50) {
+    const sma = calcSMA(closes, 50);
+    datasets.push({ label:'SMA50', data: sma, borderColor:'#f9c513', borderWidth:1.5, pointRadius:0, borderDash:[4,2], tension:0 });
+  }
+  if (indicators.sma200) {
+    const sma = calcSMA(closes, 200);
+    datasets.push({ label:'SMA200', data: sma, borderColor:'#ff7f0e', borderWidth:1.5, pointRadius:0, borderDash:[4,2], tension:0 });
+  }
+  if (indicators.ema12) {
+    const ema = calcEMA(closes, 12);
+    datasets.push({ label:'EMA12', data: ema, borderColor:'#9467bd', borderWidth:1.5, pointRadius:0, tension:0.3 });
+  }
+  if (indicators.bb) {
+    const bb = calcBollinger(closes);
+    datasets.push({ label:'BB Upper', data: bb.upper, borderColor:'rgba(255,100,100,0.5)', borderWidth:1, pointRadius:0, borderDash:[2,2], tension:0.3 });
+    datasets.push({ label:'BB Mid', data: bb.mid, borderColor:'rgba(255,255,100,0.3)', borderWidth:1, pointRadius:0, borderDash:[2,2], tension:0.3 });
+    datasets.push({ label:'BB Lower', data: bb.lower, borderColor:'rgba(100,200,100,0.5)', borderWidth:1, pointRadius:0, borderDash:[2,2], tension:0.3 });
+  }
+
+  // Volume bars (normalized to 10% of price range)
+  const priceRange = Math.max(...closes) - Math.min(...closes);
+  const priceMin = Math.min(...closes);
+  const maxVol = Math.max(...candles.v);
+  const volNorm = candles.v.map(v => priceMin + (v / maxVol) * priceRange * 0.25);
+  datasets.push({
+    label: 'Volume',
+    data: volNorm,
+    type: 'bar',
+    backgroundColor: closes.map((c,i) => i > 0 && c >= closes[i-1] ? 'rgba(63,185,80,0.25)' : 'rgba(248,81,73,0.25)'),
+    yAxisID: 'y',
+    order: 10
   });
- 
-  const [tab,           setTab]           = useState("athletes");
-  const [editing,       setEditing]       = useState(null);
-  const [viewing,       setViewing]       = useState(null);
-  const [showHelp,      setShowHelp]      = useState(false);
-  const [confirmDelete, setConfirmDelete] = useState(null); // { type: "athlete"|"team", data }
-  const [teamModal,     setTeamModal]     = useState(null); // null | "new" | teamObj
- 
-  // persist
-  useEffect(() => { save("awaygame_teams_v2", teams); }, [teams]);
-  useEffect(() => { save("awaygame_athletes_v2", athletes); }, [athletes]);
- 
-  const teamAthletes = athletes.filter(a => a.teamId === activeTeamId);
-  const teamStats    = calcTeamStats(teamAthletes);
- 
-  function saveAthlete(p) {
-    const updated = { ...p, id: p.id || uid(), lastUpdated: Date.now(), teamId: p.teamId || activeTeamId };
-    const next = p.id ? athletes.map(x => x.id === p.id ? updated : x) : [...athletes, updated];
-    setAthletes(next);
-    setEditing(null);
-    // if athlete was moved to another team, switch to that team
-    if (updated.teamId !== activeTeamId) setActiveTeamId(updated.teamId);
+
+  if (priceChart) priceChart.destroy();
+  const ctx = document.getElementById('price-chart').getContext('2d');
+  priceChart = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { labels: { color: '#8b949e', boxWidth: 15, font: { size: 10 } } },
+        tooltip: {
+          backgroundColor: '#1c2333',
+          titleColor: '#e6edf3',
+          bodyColor: '#8b949e',
+          borderColor: '#30363d',
+          borderWidth: 1
+        }
+      },
+      scales: {
+        x: { ticks: { color: '#8b949e', maxTicksLimit: 8, font:{size:10} }, grid: { color: 'rgba(48,54,61,0.5)' } },
+        y: { ticks: { color: '#8b949e', callback: v => `$${v.toFixed(0)}`, font:{size:10} }, grid: { color: 'rgba(48,54,61,0.5)' } }
+      }
+    }
+  });
+}
+
+function renderSubChart() {
+  const showing = indicators.rsi || indicators.macd;
+  document.getElementById('sub-chart-wrap').style.display = showing ? 'block' : 'none';
+  document.getElementById('sub-chart-placeholder').style.display = showing ? 'none' : 'block';
+  if (!showing || !currentCandles) return;
+
+  const closes = currentCandles.c;
+  const labels = currentCandles.t.map(t => new Date(t*1000).toLocaleDateString('en-US',{month:'short',day:'numeric'}));
+  const datasets = [];
+
+  if (indicators.rsi) {
+    const rsi = calcRSI(closes);
+    datasets.push({ label:'RSI(14)', data: rsi, borderColor:'#9467bd', borderWidth:1.5, pointRadius:0, tension:0.3 });
   }
- 
-  function deleteAthlete(id) {
-    const next = athletes.filter(a => a.id !== id);
-    setAthletes(next);
-    setConfirmDelete(null);
-    if (viewing && viewing.id === id) setViewing(null);
+  if (indicators.macd) {
+    const { macd, signal } = calcMACD(closes);
+    datasets.push({ label:'MACD', data: macd, borderColor:'#58a6ff', borderWidth:1.5, pointRadius:0, tension:0.3 });
+    datasets.push({ label:'Signal', data: signal, borderColor:'#f9c513', borderWidth:1.5, pointRadius:0, tension:0.3 });
   }
- 
-  function saveTeam(name) {
-    if (teamModal === "new") {
-      const newTeam = { id: uid(), name };
-      const next = [...teams, newTeam];
-      setTeams(next);
-      setActiveTeamId(newTeam.id);
+
+  if (subChart) subChart.destroy();
+  const ctx = document.getElementById('sub-chart').getContext('2d');
+  subChart = new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { labels: { color: '#8b949e', boxWidth:12, font:{size:9} } }, tooltip: { backgroundColor:'#1c2333', titleColor:'#e6edf3', bodyColor:'#8b949e', borderColor:'#30363d', borderWidth:1 } },
+      scales: {
+        x: { ticks: { color: '#8b949e', maxTicksLimit: 6, font:{size:9} }, grid: { color: 'rgba(48,54,61,0.3)' } },
+        y: { ticks: { color: '#8b949e', font:{size:9} }, grid: { color: 'rgba(48,54,61,0.3)' } }
+      }
+    }
+  });
+}
+
+function selectRange(btn, days) {
+  document.querySelectorAll('[data-range]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  currentRange = days;
+  loadChart();
+}
+
+function toggleInd(key) {
+  indicators[key] = !indicators[key];
+  const el = document.getElementById(`ind-${key}`);
+  if (el) el.classList.toggle('on', indicators[key]);
+  if (key === 'rsi' || key === 'macd') renderSubChart();
+  else if (currentCandles) renderChart(currentCandles);
+}
+
+async function loadNews() {
+  const c = document.getElementById('news-container');
+  c.innerHTML = '<div class="spinner mx-auto my-4"></div>';
+  const news = await fetchNews(currentSymbol);
+  if (!news || !news.length) { c.innerHTML = '<div class="text-gray-500 text-sm">No recent news found.</div>'; return; }
+  c.innerHTML = news.slice(0,6).map(n => `
+    <div class="mb-3 pb-3" style="border-bottom:1px solid var(--border);">
+      <a href="${n.url}" target="_blank" class="text-blue-400 hover:underline font-semibold text-sm">${n.headline}</a>
+      <div class="text-xs text-gray-500 mt-1">${n.source} · ${new Date(n.datetime*1000).toLocaleDateString()}</div>
+    </div>`).join('');
+}
+
+// =====================================================================
+// SIGNALS
+// =====================================================================
+function getStrategySignal(name, candles) {
+  if (!candles || !candles.c || candles.c.length < 30) return null;
+  const c = candles.c, h = candles.h, l = candles.l, v = candles.v;
+  const last = c.length - 1;
+
+  switch(name) {
+    case 'golden_cross': {
+      const sma50 = calcSMA(c, 50), sma200 = calcSMA(c, 200);
+      const cross = sma50[last] !== null && sma200[last] !== null &&
+                    sma50[last] > sma200[last] && sma50[last-1] <= sma200[last-1];
+      return { signal: cross ? 'BUY' : 'NONE', strength: cross ? 90 : 0,
+               kid: cross ? '🤗 The slow line and fast line just HUGGED! This is like when two best friends come together — traders love this!' : 'Not hugging yet... still waiting for the big hug moment!' };
+    }
+    case 'bouncy_ball': {
+      const rsi = calcRSI(c);
+      const bounce = rsi[last] > 30 && rsi[last-1] <= 30;
+      return { signal: bounce ? 'BUY' : 'NONE', strength: bounce ? 80 : 0,
+               kid: bounce ? '🏀 The bouncy ball hit the floor and bounced back up! This might mean the stock was on sale and now it\'s going back up!' : 'Ball is still bouncing around, not hitting the magic floor yet!' };
+    }
+    case 'rubber_band': {
+      const bb = calcBollinger(c);
+      const squeeze = (bb.upper[last] - bb.lower[last]) < (bb.upper[last-20] - bb.lower[last-20]) * 0.5;
+      const breakout = c[last] > bb.upper[last-1];
+      return { signal: (squeeze || breakout) ? 'BUY' : 'NONE', strength: breakout ? 85 : (squeeze ? 60 : 0),
+               kid: breakout ? '🎯 POP! The rubber band snapped and shot the price UP! This can be like a rocket taking off!' : squeeze ? '🎯 The rubber band is stretching tight... something big might happen soon!' : 'Rubber band is normal size right now.' };
+    }
+    case 'macd_dance': {
+      const { macd, signal } = calcMACD(c);
+      const cross = macd[last] > signal[last] && macd[last-1] <= signal[last-1];
+      return { signal: cross ? 'BUY' : 'NONE', strength: cross ? 75 : 0,
+               kid: cross ? '💃 The fast dancer crossed over the slow dancer! When the fast line jumps over the slow line, traders get happy!' : 'The dancers are still apart. Waiting for them to cross!' };
+    }
+    case 'rocket': {
+      const high20 = Math.max(...c.slice(last-20, last));
+      const avgVol = v.slice(last-20, last).reduce((a,b)=>a+b,0)/20;
+      const launch = c[last] > high20 && v[last] > avgVol * 2;
+      return { signal: launch ? 'BUY' : 'NONE', strength: launch ? 92 : 0,
+               kid: launch ? '🚀 WHOOSH! The stock broke through its highest point with HUGE engines (volume)! Could be going to the moon!' : 'Rocket is still on the launchpad. Not ready yet!' };
+    }
+    case 'big_party': {
+      const sma200 = calcSMA(c, 200);
+      const avgVol = v.slice(last-20, last).reduce((a,b)=>a+b,0)/20;
+      const party = sma200[last] !== null && c[last] > sma200[last] && v[last] > avgVol * 1.5;
+      return { signal: party ? 'BUY' : 'NONE', strength: party ? 70 : 0,
+               kid: party ? '🎉 A big party! The stock is strong AND lots of big friends (buyers) showed up today! That\'s exciting!' : 'Party hasn\'t started yet. Not enough friends showed up.' };
+    }
+    case 'fast_slow': {
+      const e9 = calcEMA(c, 9), e21 = calcEMA(c, 21), e50 = calcEMA(c, 50), e200 = calcEMA(c, 200);
+      const stack = e9[last] > e21[last] && e21[last] > e50[last] && e50[last] > e200[last];
+      return { signal: stack ? 'BUY' : 'NONE', strength: stack ? 88 : 0,
+               kid: stack ? '⚡ All the line friends are stacked from fast to slow like a perfect tower! This means EVERYTHING is going up!' : 'The lines are all mixed up. We want them in a neat tower!' };
+    }
+    case 'hammer': {
+      const body = Math.abs(c[last] - c[last-1]);
+      const shadow = l[last] < Math.min(c[last], c[last-1]) ? Math.min(c[last], c[last-1]) - l[last] : 0;
+      const isHammer = shadow > body * 2 && c[last] > c[last-1];
+      const recentLow = Math.min(...c.slice(last-10, last)) === c[last-1];
+      return { signal: (isHammer && recentLow) ? 'BUY' : 'NONE', strength: (isHammer && recentLow) ? 72 : 0,
+               kid: (isHammer && recentLow) ? '🔨 A hammer candle appeared at the bottom! Like hitting the floor and bouncing — sellers tried to push it down but buyers fought back!' : 'No hammer bounce today. Maybe next time!' };
+    }
+    case 'money_tree': {
+      // Analyzed separately with dividend data
+      return { signal: 'PENDING', strength: 0, kid: 'Checking if this is a Magic Money Tree... 🌳' };
+    }
+    default: return null;
+  }
+}
+
+const STRATEGIES = [
+  { key:'golden_cross', name:'🤗 Golden Cross Hug', desc:'SMA50 crosses above SMA200' },
+  { key:'bouncy_ball', name:'🏀 Super Bouncy Ball', desc:'RSI < 30 bounces back above 30' },
+  { key:'rubber_band', name:'🎯 Rubber Band Pop', desc:'Bollinger squeeze then breakout' },
+  { key:'macd_dance', name:'💃 Magic Line Dance', desc:'MACD crosses signal upward' },
+  { key:'rocket', name:'🚀 Rocket Launch', desc:'Price breaks 20-day high + 2× volume' },
+  { key:'big_party', name:'🎉 Big Friend Party', desc:'Above 200-SMA + big volume' },
+  { key:'fast_slow', name:'⚡ Fast & Slow Line Stack', desc:'EMA9>EMA21>EMA50>EMA200' },
+  { key:'hammer', name:'🔨 Happy Hammer Bounce', desc:'Hammer candle at recent low' },
+  { key:'money_tree', name:'🌳 Magic Money Tree Grow', desc:'Dividend yield > 2.5% + above 200-SMA' }
+];
+
+async function runSignals() {
+  if (!currentCandles) await loadChart();
+  const list = document.getElementById('signals-list');
+  list.innerHTML = '<div class="text-center py-4"><div class="spinner mx-auto"></div></div>';
+
+  // Fetch dividend data for money tree check
+  let divYield = 0;
+  try {
+    const divs = await fetchDividends(currentSymbol);
+    if (divs && divs.length) {
+      const lastYear = divs.filter(d => new Date(d.exDate) > new Date(Date.now() - 365*86400*1000));
+      const annualDiv = lastYear.reduce((s,d) => s + (d.amount||0), 0);
+      const price = prices[currentSymbol]?.price || currentCandles?.c[currentCandles.c.length-1] || 100;
+      divYield = (annualDiv / price) * 100;
+    }
+  } catch(e) {}
+
+  const sma200 = currentCandles ? calcSMA(currentCandles.c, 200) : [];
+  const lastClose = currentCandles ? currentCandles.c[currentCandles.c.length-1] : 0;
+  const aboveSMA200 = sma200.length && sma200[sma200.length-1] !== null && lastClose > sma200[sma200.length-1];
+
+  // Calc volatility
+  let lowVol = false;
+  if (currentCandles && currentCandles.c.length > 20) {
+    const recent20 = currentCandles.c.slice(-20);
+    const mean = recent20.reduce((a,b)=>a+b,0)/20;
+    const std = Math.sqrt(recent20.reduce((s,v)=>s+Math.pow(v-mean,2),0)/20);
+    lowVol = (std/mean) < 0.03;
+  }
+
+  list.innerHTML = '';
+  STRATEGIES.forEach(strat => {
+    let result;
+    if (strat.key === 'money_tree') {
+      const isTree = divYield > 2.5 && aboveSMA200 && lowVol;
+      result = {
+        signal: isTree ? 'TREE' : 'NONE',
+        strength: isTree ? 85 : 0,
+        kid: isTree
+          ? `🌳 YES! ${currentSymbol} is a Magic Money Tree! Yield: ${divYield.toFixed(2)}% — it drops snacks into your pocket every quarter! AND it's growing above its 200-day average!`
+          : `Not a Magic Money Tree yet. Yield: ${divYield.toFixed(2)}% (need >2.5%). ${aboveSMA200 ? '✅ Price is healthy' : '❌ Price needs to grow more'}.`
+      };
     } else {
-      setTeams(teams.map(t => t.id === teamModal.id ? { ...t, name } : t));
+      result = getStrategySignal(strat.key, currentCandles);
     }
-    setTeamModal(null);
-  }
- 
-  function deleteTeam(team) {
-    const next = teams.filter(t => t.id !== team.id);
-    const nextAthletes = athletes.filter(a => a.teamId !== team.id);
-    setTeams(next);
-    setAthletes(nextAthletes);
-    if (activeTeamId === team.id) setActiveTeamId(next[0]?.id || null);
-    setConfirmDelete(null);
-  }
- 
-  const blankAthlete = { ...BLANK_ATHLETE, teamId: activeTeamId };
- 
-  return (
-    <div style={{minHeight:"100vh",background:C.bg0}}>
-      {/* ── HEADER ── */}
-      <div style={{background:"#fff",borderBottom:`4px solid ${C.orange}`,padding:"0 16px",height:66,display:"flex",alignItems:"center",justifyContent:"space-between",boxShadow:"0 3px 12px rgba(0,0,0,0.08)",position:"sticky",top:0,zIndex:50}}>
-        <div style={{display:"flex",alignItems:"center",gap:12}}>
-          <div>
-            <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:900,fontSize:28,letterSpacing:1.5,color:C.orange,lineHeight:1}}>AWAY GAME</div>
-            <div style={{fontSize:11,color:"#777",lineHeight:1}}>Christian Parent's Playbook</div>
-          </div>
+    if (!result) return;
+
+    const badgeCls = result.signal === 'BUY' ? 'sig-buy' : result.signal === 'TREE' ? 'sig-tree' : 'sig-none';
+    const badgeText = result.signal === 'BUY' ? '✅ Signal!' : result.signal === 'TREE' ? '🌳 Money Tree!' : '⏳ Not yet';
+    const div = document.createElement('div');
+    div.className = 'p-3 rounded-xl mb-2';
+    div.style.background = '#1c2333';
+    div.innerHTML = `
+      <div class="flex items-start justify-between">
+        <div>
+          <div class="font-bold text-sm mb-1">${strat.name}</div>
+          <div class="text-xs text-gray-400 mb-2">${strat.desc}</div>
+          <div class="text-xs text-gray-300">${result.kid}</div>
         </div>
-        <div style={{display:"flex",gap:8,alignItems:"center"}}>
-          <button onClick={()=>setShowHelp(true)}
-            style={{padding:"8px 12px",borderRadius:10,background:"#fff",border:`2px solid ${C.border}`,fontWeight:700,fontSize:13,color:C.textSub}}>
-            ❓<span className="hide-mobile"> Help</span>
-          </button>
+        <div class="ml-3 flex-shrink-0">
+          <span class="signal-badge ${badgeCls}">${badgeText}</span>
+          ${result.strength > 0 ? `<div class="text-center text-xs mt-1" style="color:var(--gold)">${result.strength}%</div>` : ''}
         </div>
-      </div>
- 
-      {/* ── TAB BAR ── */}
-      <div style={{background:"#fff",borderBottom:`1px solid ${C.border}`,padding:"0 16px",display:"flex",alignItems:"center",gap:8,overflowX:"auto",WebkitOverflowScrolling:"touch"}}>
-        <div style={{paddingRight:8,borderRight:`1px solid ${C.border}`,marginRight:4,flexShrink:0}}>
-          <TeamSwitcher
-            teams={teams}
-            activeId={activeTeamId}
-            onSwitch={setActiveTeamId}
-            onNew={()=>setTeamModal("new")}
-            onRename={t=>setTeamModal(t)}
-            onDelete={t=>setConfirmDelete({type:"team",data:t})}
-          />
-        </div>
-        {["athletes","playbook"].map(t => (
-          <button key={t} onClick={()=>setTab(t)}
-            style={{padding:"14px 16px",background:"none",border:"none",fontWeight:700,fontSize:13,
-              color:tab===t?C.orange:C.textSub,borderBottom:tab===t?`3px solid ${C.orange}`:"3px solid transparent",
-              whiteSpace:"nowrap",flexShrink:0}}>
-            {t==="athletes"?"👥 Roster":"📖 Playbook"}
-          </button>
-        ))}
-      </div>
- 
-      {/* ── ATHLETES TAB ── */}
-      {tab==="athletes" && (
-        <div style={{padding:"16px"}}>
-          {/* Team stats bar */}
-          {teamAthletes.length > 0 && (
-            <div style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:14,padding:16,marginBottom:20,boxShadow:"0 4px 15px rgba(0,0,0,0.05)"}}>
-              <div style={{fontSize:13,fontWeight:800,color:C.orange,marginBottom:12,textTransform:"uppercase",letterSpacing:1}}>Team Overview</div>
-              <div style={{display:"grid",gridTemplateColumns:"repeat(3,1fr)",gap:12,textAlign:"center"}}>
-                <div>
-                  <div style={{fontSize:28,fontWeight:800,color:C.orange}}>{teamStats.avgScore}</div>
-                  <div style={{fontSize:11,color:C.textMuted}}>Avg Score</div>
-                </div>
-                <div>
-                  <div style={{fontSize:28,fontWeight:800,color:teamStats.strongPercent>70?C.green:C.orange}}>{teamStats.strongPercent}%</div>
-                  <div style={{fontSize:11,color:C.textMuted}}>Strong Virtues</div>
-                </div>
-                <div>
-                  <div style={{fontSize:28,fontWeight:800}}>{teamStats.totalAthletes}</div>
-                  <div style={{fontSize:11,color:C.textMuted}}>Athletes</div>
-                </div>
-              </div>
-            </div>
-          )}
- 
-          {/* Actions row */}
-          <div style={{display:"flex",justifyContent:"space-between",alignItems:"center",marginBottom:16,gap:8}}>
-            <h1 style={{fontSize:22,fontWeight:800}}>Roster</h1>
-            <button onClick={()=>setEditing(blankAthlete)}
-              style={{background:C.orange,color:"#fff",border:"none",padding:"10px 20px",borderRadius:12,fontWeight:700,fontSize:14,whiteSpace:"nowrap"}}>
-              ＋ Add Athlete
-            </button>
-          </div>
- 
-          {teamAthletes.length === 0 ? (
-            <div style={{textAlign:"center",padding:"80px 20px",color:"#666"}}>
-              <div style={{fontSize:64}}>⚽️🏀🏈</div>
-              <div style={{fontSize:20,margin:"16px 0",fontWeight:700}}>No athletes yet</div>
-              <div style={{fontSize:14,color:C.textMuted,marginBottom:24}}>Add your first player to start tracking character development.</div>
-              <button onClick={()=>setEditing(blankAthlete)}
-                style={{background:C.orange,color:"#fff",padding:"14px 32px",borderRadius:12,fontSize:16,fontWeight:700,border:"none"}}>
-                Add Your First Athlete
-              </button>
-            </div>
-          ) : (
-            <div style={{display:"grid",gridTemplateColumns:"repeat(auto-fill,minmax(290px,1fr))",gap:14}}>
-              {teamAthletes.map(p => {
-                const combo = getCombo(p.scores);
-                return (
-                  <div key={p.id} style={{background:"#fff",border:`1px solid ${C.border}`,borderRadius:14,padding:18,boxShadow:"0 4px 16px rgba(0,0,0,0.06)",position:"relative"}}>
-                    {/* Delete btn */}
-                    <button
-                      onClick={e=>{e.stopPropagation();setConfirmDelete({type:"athlete",data:p});}}
-                      className="delete-btn"
-                      style={{position:"absolute",top:12,right:12}}>
-                      🗑
-                    </button>
- 
-                    <div onClick={()=>setViewing(p)} style={{cursor:"pointer",paddingRight:44}}>
-                      <div style={{fontSize:20,fontWeight:800,marginBottom:4}}>{p.name}</div>
-                      {p.role && <div style={{color:C.textSub,fontSize:13,marginBottom:10}}>{p.role}</div>}
- 
-                      {/* Virtue chips */}
-                      <div style={{display:"flex",gap:6,flexWrap:"wrap",marginBottom:12}}>
-                        {Object.entries(p.scores).map(([k,v]) => (
-                          <div key={k} style={{background:VIRTUES[k].bg,padding:"4px 8px",borderRadius:6,fontSize:12,fontWeight:600}}>
-                            {VIRTUES[k].icon} {v}
-                          </div>
-                        ))}
-                      </div>
- 
-                      {/* Progress bar */}
-                      <div className="progress-bar" style={{marginBottom:8}}>
-                        <div className="progress-fill" style={{width:`${combo.progress}%`,background:progressBg(combo.progress)}} />
-                      </div>
- 
-                      {/* Label + date */}
-                      <div style={{display:"flex",justifyContent:"space-between",alignItems:"center"}}>
-                        <span style={{fontSize:12,fontWeight:700,color:combo.color}}>{combo.icon} {combo.label}</span>
-                        <span style={{fontSize:11,color:C.textMuted}}>{p.lastUpdated?new Date(p.lastUpdated).toLocaleDateString():"Never"}</span>
-                      </div>
-                    </div>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
-      )}
- 
-      {/* ── PLAYBOOK TAB ── */}
-      {tab==="playbook" && (
-        <div style={{padding:16,maxWidth:760,margin:"0 auto"}}>
-          <div style={{background:"#fff",border:`2px solid ${C.orange}`,borderRadius:14,padding:20,marginBottom:24}}>
-            <div style={{fontFamily:"'Barlow Condensed',sans-serif",fontWeight:900,fontSize:24,color:C.orange,marginBottom:8}}>THE PLAYBOOK</div>
-            <p style={{fontSize:14,color:C.textSub,lineHeight:1.7}}>
-              The seven virtues below come from the Fruit of the Spirit (Galatians 5:22–23), applied to competitive youth sports.
-              The goal isn't to grade your athletes — it's to help you see them the way God does, and coach them toward who they're becoming.
-            </p>
-          </div>
-          {Object.values(VIRTUES).map(t => (
-            <div key={t.key} style={{marginBottom:16,background:"#fff",border:`1px solid ${C.border}`,borderRadius:14,overflow:"hidden"}}>
-              <div style={{background:t.bg,padding:"14px 18px",display:"flex",alignItems:"center",gap:14}}>
-                <span style={{fontSize:40}}>{t.icon}</span>
-                <div>
-                  <div style={{fontSize:20,fontWeight:800,color:t.color}}>{t.label}</div>
-                  <div style={{color:C.textSub,fontSize:13,fontStyle:"italic"}}>"{t.tagline}"</div>
-                </div>
-              </div>
-              <div style={{padding:"14px 18px"}}>
-                <div style={{fontSize:12,color:C.textMuted,marginBottom:10}}>{t.scoreMeaning}</div>
-                <div style={{display:"grid",gridTemplateColumns:"1fr 1fr",gap:12}}>
-                  <div>
-                    <div style={{fontSize:12,fontWeight:700,color:C.green,marginBottom:6}}>✓ SHOWING UP</div>
-                    {t.strong.map((s,i)=><div key={i} style={{fontSize:13,color:C.textSub,marginBottom:4}}>→ {s}</div>)}
-                  </div>
-                  <div>
-                    <div style={{fontSize:12,fontWeight:700,color:C.red,marginBottom:6}}>✗ GROWING EDGE</div>
-                    {t.weak.map((s,i)=><div key={i} style={{fontSize:13,color:C.textSub,marginBottom:4}}>– {s}</div>)}
-                  </div>
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
- 
-      {/* ── MODALS ── */}
-      {editing && (
-        <EditModal person={editing} teams={teams} currentTeamId={activeTeamId} onSave={saveAthlete} onClose={()=>setEditing(null)} />
-      )}
- 
-      {viewing && (
-        <PersonDetail
-          person={viewing}
-          onClose={()=>setViewing(null)}
-          onEdit={p=>{ setViewing(null); setEditing(athletes.find(a=>a.id===p.id)||p); }}
-          onDelete={()=>setConfirmDelete({type:"athlete",data:viewing})}
-        />
-      )}
- 
-      {confirmDelete?.type==="athlete" && (
-        <ConfirmModal
-          title="Delete Athlete"
-          message={<>Are you sure you want to delete <strong>{confirmDelete.data.name}</strong>?</>}
-          warning="This cannot be undone."
-          confirmLabel="Yes, Delete"
-          onConfirm={()=>deleteAthlete(confirmDelete.data.id)}
-          onCancel={()=>setConfirmDelete(null)}
-        />
-      )}
- 
-      {confirmDelete?.type==="team" && (
-        <ConfirmModal
-          title="Delete Team"
-          message={<>Delete <strong>{confirmDelete.data.name}</strong>?</>}
-          warning={`All ${athletes.filter(a=>a.teamId===confirmDelete.data.id).length} athlete(s) on this team will also be permanently deleted. Move any players you want to keep before deleting.`}
-          confirmLabel="Delete Team & Athletes"
-          onConfirm={()=>deleteTeam(confirmDelete.data)}
-          onCancel={()=>setConfirmDelete(null)}
-        />
-      )}
- 
-      {teamModal && (
-        <TeamNameModal
-          team={teamModal === "new" ? null : teamModal}
-          onSave={saveTeam}
-          onClose={()=>setTeamModal(null)}
-        />
-      )}
- 
-      {showHelp && <HelpModal onClose={()=>setShowHelp(false)} />}
-    </div>
-  );
+      </div>`;
+    list.appendChild(div);
+  });
 }
- 
-const root = ReactDOM.createRoot(document.getElementById("root"));
-root.render(React.createElement(App));
+
+async function checkSignalAlerts() {
+  // Only check occasionally
+  if (Math.random() > 0.05) return;
+  if (!currentCandles) return;
+  const strat = STRATEGIES[Math.floor(Math.random() * (STRATEGIES.length - 1))];
+  const result = getStrategySignal(strat.key, currentCandles);
+  if (result && result.signal === 'BUY' && 'Notification' in window) {
+    if (Notification.permission === 'granted') {
+      new Notification(`📈 ${currentSymbol} Signal!`, { body: `${strat.name} triggered! ${result.kid}` });
+    } else if (Notification.permission !== 'denied') {
+      Notification.requestPermission();
+    }
+  }
+}
+
+// =====================================================================
+// PORTFOLIO / TRADING
+// =====================================================================
+function savePortfolio() {
+  localStorage.setItem('sgka_portfolio', JSON.stringify(portfolio));
+}
+
+async function executeTrade() {
+  const side = document.getElementById('trade-side').value;
+  const shares = parseInt(document.getElementById('trade-shares').value);
+  const stop = parseFloat(document.getElementById('trade-stop').value) || null;
+  const target = parseFloat(document.getElementById('trade-target').value) || null;
+  const msg = document.getElementById('trade-msg');
+
+  const price = prices[currentSymbol]?.price || currentCandles?.c[currentCandles.c.length-1];
+  if (!price) { msg.textContent = '⚠️ No price data!'; msg.style.color='var(--red)'; return; }
+  if (isNaN(shares) || shares < 1) { msg.textContent = '⚠️ Enter valid shares!'; msg.style.color='var(--red)'; return; }
+
+  const total = price * shares;
+
+  if (side === 'buy') {
+    if (total > portfolio.cash) { msg.textContent = '😱 Not enough pretend money!'; msg.style.color='var(--red)'; return; }
+    portfolio.cash -= total;
+    if (!portfolio.positions[currentSymbol]) {
+      portfolio.positions[currentSymbol] = { shares:0, avgCost:0, stop:null, target:null };
+    }
+    const pos = portfolio.positions[currentSymbol];
+    pos.avgCost = (pos.avgCost * pos.shares + price * shares) / (pos.shares + shares);
+    pos.shares += shares;
+    if (stop) pos.stop = stop;
+    if (target) pos.target = target;
+    portfolio.snackTimers = portfolio.snackTimers || {};
+    portfolio.snackTimers[currentSymbol] = { lastPay: Date.now(), symbol: currentSymbol };
+    portfolio.history.push({ type:'BUY', symbol: currentSymbol, shares, price, total, time: Date.now() });
+    msg.textContent = `🎉 Bought ${shares} shares of ${currentSymbol} @ $${price.toFixed(2)}!`;
+    msg.style.color = 'var(--green)';
+  } else {
+    const pos = portfolio.positions[currentSymbol];
+    if (!pos || pos.shares < shares) { msg.textContent = '😅 You don\'t have that many shares!'; msg.style.color='var(--red)'; return; }
+    portfolio.cash += total;
+    pos.shares -= shares;
+    if (pos.shares === 0) {
+      delete portfolio.positions[currentSymbol];
+      delete portfolio.snackTimers[currentSymbol];
+    }
+    portfolio.history.push({ type:'SELL', symbol: currentSymbol, shares, price, total, time: Date.now() });
+    msg.textContent = `✅ Sold ${shares} shares of ${currentSymbol} @ $${price.toFixed(2)}!`;
+    msg.style.color = 'var(--accent)';
+  }
+
+  savePortfolio();
+  renderPortfolio();
+  setTimeout(() => { msg.textContent = ''; }, 4000);
+}
+
+function renderPortfolio() {
+  document.getElementById('cash-display').textContent = `$${portfolio.cash.toFixed(2)}`;
+  document.getElementById('total-dividends').textContent = `$${(portfolio.totalDividends||0).toFixed(2)}`;
+  renderPositions();
+  renderTradeHistory();
+}
+
+function renderPositions() {
+  const c = document.getElementById('positions-container');
+  const syms = Object.keys(portfolio.positions);
+  if (!syms.length) {
+    c.innerHTML = '<div class="text-sm text-gray-500 text-center py-4">No positions yet — make a pretend trade above! 👆</div>';
+    return;
+  }
+  c.innerHTML = syms.map(sym => {
+    const pos = portfolio.positions[sym];
+    const livePrice = prices[sym]?.price || pos.avgCost;
+    const pnl = (livePrice - pos.avgCost) * pos.shares;
+    const pnlPct = ((livePrice - pos.avgCost) / pos.avgCost) * 100;
+    const pnlColor = pnl >= 0 ? 'var(--green)' : 'var(--red)';
+    return `
+      <div class="pos-row">
+        <div>
+          <div class="font-bold">${sym}</div>
+          <div class="text-xs text-gray-400">${pos.shares} shares @ $${pos.avgCost.toFixed(2)}</div>
+          ${pos.stop ? `<div class="text-xs" style="color:var(--red)">Stop: $${pos.stop}</div>` : ''}
+          ${pos.target ? `<div class="text-xs" style="color:var(--green)">Target: $${pos.target}</div>` : ''}
+        </div>
+        <div class="text-right">
+          <div class="font-bold">$${(livePrice * pos.shares).toFixed(2)}</div>
+          <div class="text-xs font-bold" style="color:${pnlColor}">${pnl >= 0 ? '+' : ''}$${pnl.toFixed(2)} (${pnlPct.toFixed(1)}%)</div>
+        </div>
+        ${renderSnackMeter(sym, pos)}
+      </div>`;
+  }).join('');
+}
+
+function renderSnackMeter(sym, pos) {
+  const divData = window._divCache && window._divCache[sym];
+  if (!divData || !divData.quarterly) return '';
+  const quarterly = divData.quarterly * pos.shares;
+  if (quarterly <= 0) return '';
+  const timer = portfolio.snackTimers && portfolio.snackTimers[sym];
+  const elapsed = timer ? (Date.now() - timer.lastPay) / (90 * 86400 * 1000) : 0;
+  const pct = Math.min(elapsed * 100, 100);
+  return `
+    <div class="w-full mt-2" style="grid-column:1/-1;">
+      <div class="text-xs text-gray-400 mb-1">🍪 Snack Meter — Est. $${quarterly.toFixed(2)}/quarter</div>
+      <div class="snack-bar-bg"><div class="snack-bar-fill" style="width:${pct}%"></div></div>
+      ${pct >= 100 ? `<div class="text-xs mt-1" style="color:var(--gold)">🎉 Snack time! +$${quarterly.toFixed(2)} added!</div>` : ''}
+    </div>`;
+}
+
+function renderTradeHistory() {
+  const c = document.getElementById('trade-history');
+  if (!portfolio.history.length) {
+    c.innerHTML = '<div class="text-gray-500 text-center py-3">No trades yet!</div>';
+    return;
+  }
+  c.innerHTML = [...portfolio.history].reverse().slice(0,20).map(t => `
+    <div class="flex justify-between py-2" style="border-bottom:1px solid var(--border);">
+      <div>
+        <span class="signal-badge ${t.type==='BUY'?'sig-buy':'sig-none'}">${t.type}</span>
+        <span class="ml-2 font-bold">${t.symbol}</span>
+        <span class="text-gray-400 text-xs ml-1">${t.shares} @ $${t.price.toFixed(2)}</span>
+      </div>
+      <div class="text-xs text-gray-500">${new Date(t.time).toLocaleDateString()}</div>
+    </div>`).join('');
+}
+
+// Snack payout simulation (check every minute)
+setInterval(async () => {
+  if (!portfolio.snackTimers) return;
+  let paid = false;
+  for (const sym of Object.keys(portfolio.snackTimers)) {
+    const timer = portfolio.snackTimers[sym];
+    const elapsed = (Date.now() - timer.lastPay) / (90 * 86400 * 1000); // 90 days
+    if (elapsed >= 1) {
+      const divData = window._divCache && window._divCache[sym];
+      const pos = portfolio.positions[sym];
+      if (divData && divData.quarterly && pos && pos.shares > 0) {
+        const payout = divData.quarterly * pos.shares;
+        portfolio.cash += payout;
+        portfolio.totalDividends = (portfolio.totalDividends || 0) + payout;
+        portfolio.snackTimers[sym].lastPay = Date.now();
+        paid = true;
+        showSnackAlert(sym, payout);
+      }
+    }
+  }
+  if (paid) { savePortfolio(); renderPortfolio(); }
+}, 60000);
+
+function showSnackAlert(sym, amount) {
+  const el = document.createElement('div');
+  el.style.cssText = `position:fixed;top:70px;right:20px;z-index:7000;background:#1c2333;border:2px solid var(--gold);border-radius:14px;padding:16px 20px;animation:popIn 0.3s ease;`;
+  el.innerHTML = `<div class="fredoka text-lg" style="color:var(--gold)">🌳 Snack Time!</div><div class="text-sm">${sym} dropped <strong>+$${amount.toFixed(2)}</strong> of snack money! 🍪</div>`;
+  document.body.appendChild(el);
+  setTimeout(() => el.remove(), 5000);
+}
+
+// =====================================================================
+// RIGOROUS BACKTEST ENGINE
+// =====================================================================
+
+let btEquityChart = null;
+let btMcChart = null;
+
+// --- Statistical helpers ---
+
+function annualizedReturn(totalRetPct, days) {
+  // CAGR formula
+  const years = days / 365;
+  if (years <= 0) return 0;
+  return (Math.pow(1 + totalRetPct / 100, 1 / years) - 1) * 100;
+}
+
+function sharpeRatio(returns, riskFreeDaily = 0.0001) {
+  // returns: array of per-trade return fractions
+  if (returns.length < 2) return 0;
+  const excess = returns.map(r => r - riskFreeDaily);
+  const mean = excess.reduce((a, b) => a + b, 0) / excess.length;
+  const std = Math.sqrt(excess.reduce((s, r) => s + Math.pow(r - mean, 2), 0) / excess.length);
+  return std === 0 ? 0 : (mean / std) * Math.sqrt(252); // annualized
+}
+
+function sortinoRatio(returns, riskFreeDaily = 0.0001) {
+  if (returns.length < 2) return 0;
+  const excess = returns.map(r => r - riskFreeDaily);
+  const mean = excess.reduce((a, b) => a + b, 0) / excess.length;
+  const downside = excess.filter(r => r < 0);
+  if (!downside.length) return mean > 0 ? 99 : 0;
+  const downStd = Math.sqrt(downside.reduce((s, r) => s + r * r, 0) / downside.length);
+  return downStd === 0 ? 0 : (mean / downStd) * Math.sqrt(252);
+}
+
+function profitFactor(trades) {
+  const grossWins = trades.filter(t => t.pnl > 0).reduce((s, t) => s + t.pnl, 0);
+  const grossLoss = Math.abs(trades.filter(t => t.pnl < 0).reduce((s, t) => s + t.pnl, 0));
+  return grossLoss === 0 ? (grossWins > 0 ? 99 : 1) : grossWins / grossLoss;
+}
+
+function maxDrawdownFull(equityCurve) {
+  // Returns { pct, durationDays, startIdx, endIdx }
+  let peak = equityCurve[0], peakIdx = 0;
+  let maxDD = 0, ddDur = 0, worstStart = 0, worstEnd = 0;
+  let currentDDStart = 0;
+  for (let i = 1; i < equityCurve.length; i++) {
+    if (equityCurve[i] >= peak) {
+      peak = equityCurve[i];
+      peakIdx = i;
+      currentDDStart = i;
+    } else {
+      const dd = (peak - equityCurve[i]) / peak * 100;
+      const dur = i - currentDDStart;
+      if (dd > maxDD) { maxDD = dd; ddDur = dur; worstStart = currentDDStart; worstEnd = i; }
+    }
+  }
+  return { pct: maxDD, durationBars: ddDur };
+}
+
+function monteCarloSimulate(trades, runs = 200) {
+  const finalEquities = [];
+  const startEquity = 10000;
+  for (let r = 0; r < runs; r++) {
+    // Shuffle trade returns
+    const shuffled = [...trades].sort(() => Math.random() - 0.5);
+    let equity = startEquity;
+    for (const t of shuffled) {
+      equity *= (1 + t.retFrac);
+    }
+    finalEquities.push(((equity - startEquity) / startEquity) * 100);
+  }
+  finalEquities.sort((a, b) => a - b);
+  return {
+    p5: finalEquities[Math.floor(runs * 0.05)],
+    p50: finalEquities[Math.floor(runs * 0.50)],
+    p95: finalEquities[Math.floor(runs * 0.95)],
+    profitablePct: (finalEquities.filter(e => e > 0).length / runs) * 100,
+    all: finalEquities
+  };
+}
+
+function reliabilityScore(trades, sharpe, winRate, days) {
+  // Score 0–100 based on sample size, Sharpe, win rate consistency
+  let score = 0;
+  const n = trades.length;
+  // Sample size (max 40 pts)
+  if (n >= 30) score += 40;
+  else if (n >= 20) score += 30;
+  else if (n >= 10) score += 20;
+  else if (n >= 5) score += 10;
+  else score += 2;
+  // Sharpe (max 30 pts)
+  if (sharpe >= 2) score += 30;
+  else if (sharpe >= 1) score += 20;
+  else if (sharpe >= 0.5) score += 10;
+  else if (sharpe > 0) score += 5;
+  // Win rate distance from 50% (max 20 pts)
+  const wrEdge = Math.abs(winRate - 50);
+  if (wrEdge >= 20) score += 20;
+  else if (wrEdge >= 10) score += 12;
+  else if (wrEdge >= 5) score += 6;
+  // Lookback period (max 10 pts)
+  if (days >= 730) score += 10;
+  else if (days >= 365) score += 7;
+  else score += 3;
+  return score;
+}
+
+// --- Core backtest runner ---
+
+function runStratBacktest(stratKey, candles, exitRule, sizingRule, commissionVal, slippageVal) {
+  const c = candles.c, h = candles.h, l = candles.l, v = candles.v, t = candles.t;
+  const atr = calcATR(h, l, c, 14);
+  const trades = [];
+  let equity = 10000;
+  let inTrade = false;
+  let entryPrice = 0, entryIdx = 0, stopPrice = 0, targetPrice = 0;
+  let shares = 0;
+  const equityCurve = [equity]; // one point per bar
+  const equityDates = [new Date(t[0]*1000).toLocaleDateString('en-US',{month:'short',day:'numeric'})];
+
+  const WARMUP = 210; // bars needed for SMA200
+
+  for (let i = WARMUP; i < c.length; i++) {
+    if (inTrade) {
+      const slip = parseFloat(slippageVal);
+      const comm = parseFloat(commissionVal);
+      const commPct = commissionVal === '0.001' ? c[i] * shares * 0.001 : comm;
+
+      // Check exit conditions
+      let exitPrice = null;
+      let exitReason = '';
+
+      // Stop loss hit (use low of bar)
+      if (l[i] <= stopPrice && stopPrice > 0) {
+        exitPrice = Math.min(stopPrice, c[i]) - slip;
+        exitReason = 'Stop Loss';
+      }
+      // Target hit (use high of bar)
+      else if (targetPrice > 0 && h[i] >= targetPrice) {
+        exitPrice = targetPrice - slip;
+        exitReason = 'Target Hit';
+      }
+      // Fixed hold exit
+      else if (exitRule === 'fixed10' && i >= entryIdx + 10) {
+        exitPrice = c[i] - slip;
+        exitReason = '10-Day Hold';
+      }
+      else if (exitRule === 'fixed20' && i >= entryIdx + 20) {
+        exitPrice = c[i] - slip;
+        exitReason = '20-Day Hold';
+      }
+      // Opposite signal
+      else if (exitRule === 'signal') {
+        const sliceCandles = { c:c.slice(0,i+1), h:h.slice(0,i+1), l:l.slice(0,i+1), v:v.slice(0,i+1) };
+        const sig = getStrategySignal(stratKey, sliceCandles);
+        if (sig && sig.signal === 'NONE') {
+          exitPrice = c[i] - slip;
+          exitReason = 'Signal Exit';
+        }
+      }
+
+      if (exitPrice !== null) {
+        const grossPnl = (exitPrice - entryPrice) * shares;
+        const netPnl = grossPnl - commPct * 2; // entry + exit commission
+        const retFrac = netPnl / (entryPrice * shares);
+        equity += netPnl;
+        trades.push({
+          entryIdx, exitIdx: i,
+          entry: entryPrice, exit: exitPrice,
+          shares, pnl: netPnl, retFrac,
+          holdDays: i - entryIdx,
+          date: new Date(t[entryIdx]*1000).toLocaleDateString('en-US',{month:'short',day:'numeric'}),
+          exitDate: new Date(t[i]*1000).toLocaleDateString('en-US',{month:'short',day:'numeric'}),
+          exitReason
+        });
+        inTrade = false;
+      }
+    }
+
+    equityCurve.push(equity);
+    equityDates.push(new Date(t[i]*1000).toLocaleDateString('en-US',{month:'short',day:'numeric'}));
+
+    if (!inTrade && i < c.length - 2) {
+      // Look-ahead protected: only use data up to bar i
+      const sliceCandles = { c:c.slice(0,i+1), h:h.slice(0,i+1), l:l.slice(0,i+1), v:v.slice(0,i+1) };
+      const result = getStrategySignal(stratKey, sliceCandles);
+
+      if (result && result.signal === 'BUY' && result.strength > 0) {
+        // Entry price = next bar open (approximated as next close — conservative)
+        const slip = parseFloat(slippageVal);
+        const comm = parseFloat(commissionVal);
+        entryPrice = c[i+1] + slip; // slippage on entry
+        entryIdx = i + 1;
+
+        // Position sizing
+        const atrVal = atr[i] || (c[i] * 0.02);
+        if (sizingRule === 'fixed') {
+          shares = Math.floor(10000 / entryPrice);
+        } else if (sizingRule === 'risk1') {
+          const riskPerShare = atrVal * 1.5;
+          shares = Math.max(1, Math.floor((equity * 0.01) / riskPerShare));
+        } else if (sizingRule === 'risk2') {
+          const riskPerShare = atrVal * 1.5;
+          shares = Math.max(1, Math.floor((equity * 0.02) / riskPerShare));
+        } else if (sizingRule === 'half') {
+          // Half-Kelly: f = edge/odds, use signal strength as proxy
+          const edge = (result.strength / 100) * 0.5;
+          const fractional = Math.max(0.05, Math.min(0.25, edge));
+          shares = Math.max(1, Math.floor((equity * fractional) / entryPrice));
+        }
+
+        // Cap shares to available equity
+        shares = Math.min(shares, Math.floor((equity * 0.95) / entryPrice));
+        if (shares < 1) continue;
+
+        // Commission on entry
+        const commEntry = comm === 0.001 ? entryPrice * shares * 0.001 : comm;
+        equity -= commEntry;
+
+        // Exit levels for ATR-based rule
+        if (exitRule === 'atr') {
+          stopPrice = entryPrice - atrVal * 1.5;
+          targetPrice = entryPrice + atrVal * 3; // 2:1 risk/reward
+        } else {
+          stopPrice = 0;
+          targetPrice = 0;
+        }
+
+        inTrade = true;
+      }
+    }
+  }
+
+  // Force-close any open position at last bar
+  if (inTrade) {
+    const slip = parseFloat(slippageVal);
+    const exitPrice = c[c.length-1] - slip;
+    const grossPnl = (exitPrice - entryPrice) * shares;
+    const netPnl = grossPnl;
+    equity += netPnl;
+    trades.push({
+      entryIdx, exitIdx: c.length-1,
+      entry: entryPrice, exit: exitPrice,
+      shares, pnl: netPnl, retFrac: netPnl / (entryPrice * shares),
+      holdDays: c.length-1 - entryIdx,
+      date: new Date(t[entryIdx]*1000).toLocaleDateString('en-US',{month:'short',day:'numeric'}),
+      exitDate: new Date(t[t.length-1]*1000).toLocaleDateString('en-US',{month:'short',day:'numeric'}),
+      exitReason: 'End of Period'
+    });
+  }
+
+  return { trades, equityCurve, equityDates, finalEquity: equity };
+}
+
+// --- Main entry point ---
+
+async function runBacktest() {
+  const stratKey = document.getElementById('bt-strategy').value;
+  const days = parseInt(document.getElementById('bt-range').value);
+  const includeDivs = document.getElementById('bt-dividends').checked;
+  const exitRule = document.getElementById('bt-exit').value;
+  const sizingRule = document.getElementById('bt-sizing').value;
+  const commissionVal = document.getElementById('bt-commission').value;
+  const slippageVal = document.getElementById('bt-slippage').value;
+  const runMC = document.getElementById('bt-monte-carlo').checked;
+
+  const loadingEl = document.getElementById('backtest-loading');
+  const resultsEl = document.getElementById('backtest-results');
+  const msgEl = document.getElementById('bt-loading-msg');
+
+  loadingEl.classList.remove('hidden');
+  resultsEl.classList.add('hidden');
+
+  msgEl.textContent = 'Fetching candles from Finnhub...';
+  const candles = await fetchCandles(currentSymbol, days);
+  if (!candles || candles.c.length < 60) {
+    loadingEl.innerHTML = '<div class="text-red-400 text-sm text-center p-4">Not enough data. Try a longer range or a more liquid symbol (AAPL, SPY, etc.).</div>';
+    return;
+  }
+
+  // Dividend data
+  let periodDivTotal = 0;
+  let divPerShare = 0;
+  msgEl.textContent = 'Fetching dividend history...';
+  if (includeDivs) {
+    try {
+      const divs = await fetchDividends(currentSymbol);
+      const startDate = new Date(candles.t[0]*1000);
+      const endDate = new Date(candles.t[candles.t.length-1]*1000);
+      if (divs && divs.length) {
+        const periodDivs = divs.filter(d => {
+          const dt = new Date(d.exDate);
+          return dt >= startDate && dt <= endDate;
+        });
+        divPerShare = periodDivs.reduce((s,d) => s + (d.amount||0), 0);
+        periodDivTotal = divPerShare * Math.floor(10000 / candles.c[0]);
+      }
+    } catch(e) {}
+  }
+
+  msgEl.textContent = 'Running backtest simulation...';
+  // Small delay so UI updates
+  await new Promise(r => setTimeout(r, 50));
+
+  const { trades, equityCurve, equityDates, finalEquity } = runStratBacktest(
+    stratKey, candles, exitRule, sizingRule, commissionVal, slippageVal
+  );
+
+  // Add reinvested dividends to equity
+  const finalEquityWithDiv = finalEquity + (includeDivs ? periodDivTotal : 0);
+
+  // --- Compute all metrics ---
+  const startPrice = candles.c[0];
+  const endPrice = candles.c[candles.c.length-1];
+  const bahReturn = ((endPrice - startPrice) / startPrice) * 100;
+  const stratReturnPct = ((finalEquityWithDiv - 10000) / 10000) * 100;
+  const alpha = stratReturnPct - bahReturn;
+  const years = days / 365;
+  const stratCAGR = annualizedReturn(stratReturnPct, days);
+  const bahCAGR = annualizedReturn(bahReturn, days);
+
+  const tradeReturns = trades.map(t => t.retFrac);
+  const sharpe = sharpeRatio(tradeReturns);
+  const sortino = sortinoRatio(tradeReturns);
+  const pf = profitFactor(trades);
+  const { pct: maxDD, durationBars: ddDur } = maxDrawdownFull(equityCurve);
+
+  const wins = trades.filter(t => t.pnl > 0);
+  const losses = trades.filter(t => t.pnl <= 0);
+  const winRate = trades.length > 0 ? (wins.length / trades.length) * 100 : 0;
+  const avgWin = wins.length ? wins.reduce((s,t)=>s+t.pnl,0)/wins.length : 0;
+  const avgLoss = losses.length ? Math.abs(losses.reduce((s,t)=>s+t.pnl,0)/losses.length) : 0;
+  const expectancy = avgLoss > 0 ? avgWin / avgLoss : (avgWin > 0 ? 99 : 0);
+  const avgHold = trades.length ? trades.reduce((s,t)=>s+t.holdDays,0)/trades.length : 0;
+  const tradeFreq = trades.length > 0 ? (days / trades.length).toFixed(0) : '--';
+
+  const reliability = reliabilityScore(trades, sharpe, winRate, days);
+
+  // Monte Carlo
+  let mc = null;
+  if (runMC && trades.length >= 3) {
+    msgEl.textContent = 'Running Monte Carlo (200 simulations)...';
+    await new Promise(r => setTimeout(r, 50));
+    mc = monteCarloSimulate(trades);
+  }
+
+  // Build Buy & Hold equity curve
+  const bahCurve = candles.c.slice(candles.c.length - equityCurve.length).map(
+    p => 10000 * (p / startPrice)
+  );
+
+  // --- Render ---
+  loadingEl.classList.add('hidden');
+  resultsEl.classList.remove('hidden');
+
+  // Reliability banner
+  const relColor = reliability >= 70 ? 'var(--green)' : reliability >= 45 ? '#f9c513' : 'var(--red)';
+  const relLabel = reliability >= 70 ? 'HIGH CONFIDENCE' : reliability >= 45 ? 'MODERATE CONFIDENCE' : 'LOW CONFIDENCE — INTERPRET WITH CAUTION';
+  const relDesc = reliability >= 70
+    ? 'Sample size, Sharpe, and win-rate edge are solid. Results are more likely to reflect real edge than luck.'
+    : reliability >= 45
+    ? 'Moderate sample. Some statistical basis but not enough trades to be definitive. Treat as directional.'
+    : `Only ${trades.length} trade(s) in this period. Results are statistically unreliable — could easily be random. Use a longer lookback or a more active strategy.`;
+
+  document.getElementById('bt-reliability-banner').innerHTML = `
+    <div class="flex items-start gap-3">
+      <div class="text-2xl">🎯</div>
+      <div>
+        <div class="font-bold text-sm" style="color:${relColor}">RELIABILITY SCORE: ${reliability}/100 — ${relLabel}</div>
+        <div class="text-xs text-gray-400 mt-1">${relDesc}</div>
+        <div class="text-xs mt-1" style="color:#8b949e;">Minimum for statistical significance: 30+ trades. Current: <strong>${trades.length}</strong>. ${trades.length < 30 ? '⚠️ Insufficient — extend lookback period.' : '✅ Acceptable sample.'}</div>
+      </div>
+    </div>`;
+
+  // Core metrics
+  const setMetric = (id, val, color, sub='', subId='') => {
+    document.getElementById(id).textContent = val;
+    document.getElementById(id).style.color = color;
+    if (subId) document.getElementById(subId).textContent = sub;
+  };
+
+  const colGreen = 'var(--green)', colRed = 'var(--red)', colGold = 'var(--gold)', colAccent = 'var(--accent)';
+  setMetric('bt-strat-return', `${stratReturnPct>=0?'+':''}${stratReturnPct.toFixed(1)}%`, stratReturnPct>=0?colGreen:colRed, `CAGR: ${stratCAGR>=0?'+':''}${stratCAGR.toFixed(1)}%/yr`, 'bt-strat-cagr');
+  setMetric('bt-bah-return', `${bahReturn>=0?'+':''}${bahReturn.toFixed(1)}%`, bahReturn>=0?colGreen:colRed, `CAGR: ${bahCAGR>=0?'+':''}${bahCAGR.toFixed(1)}%/yr`, 'bt-bah-cagr');
+  setMetric('bt-alpha', `${alpha>=0?'+':''}${alpha.toFixed(1)}%`, alpha>=0?colGreen:colRed);
+  setMetric('bt-sharpe', sharpe.toFixed(2), sharpe>=1?colGreen:sharpe>=0.5?colGold:colRed);
+  setMetric('bt-sortino', sortino.toFixed(2), sortino>=1?colGreen:sortino>=0.5?colGold:colRed);
+  setMetric('bt-win-rate', `${winRate.toFixed(0)}%`, winRate>=55?colGreen:winRate>=45?colGold:colRed, `${wins.length}W / ${losses.length}L`, 'bt-win-detail');
+  setMetric('bt-profit-factor', pf >= 99 ? '∞' : pf.toFixed(2), pf>=1.5?colGreen:pf>=1?colGold:colRed);
+  setMetric('bt-drawdown', `-${maxDD.toFixed(1)}%`, colRed, `~${ddDur} bars duration`, 'bt-drawdown-dur');
+  setMetric('bt-expectancy', expectancy >= 99 ? '∞' : expectancy.toFixed(2), expectancy>=1.5?colGreen:expectancy>=1?colGold:colRed);
+  setMetric('bt-trades', trades.length, colAccent, `~1 trade/${tradeFreq} days`, 'bt-trade-freq');
+  setMetric('bt-avg-hold', avgHold.toFixed(1), colAccent);
+  document.getElementById('bt-div-return').textContent = includeDivs && periodDivTotal > 0 ? `+$${periodDivTotal.toFixed(0)}` : '--';
+  document.getElementById('bt-div-return').style.color = colGold;
+
+  // Equity curve chart
+  if (btEquityChart) btEquityChart.destroy();
+  const btCtx = document.getElementById('bt-equity-chart').getContext('2d');
+  btEquityChart = new Chart(btCtx, {
+    type: 'line',
+    data: {
+      labels: equityDates,
+      datasets: [
+        { label: 'Strategy', data: equityCurve, borderColor: '#58a6ff', borderWidth: 2, pointRadius: 0, tension: 0.2, fill: false },
+        { label: 'Buy & Hold', data: bahCurve, borderColor: '#ffd700', borderWidth: 1.5, pointRadius: 0, tension: 0.2, borderDash: [4,3], fill: false }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { labels: { color:'#8b949e', boxWidth:14, font:{size:10} } }, tooltip: { backgroundColor:'#1c2333', titleColor:'#e6edf3', bodyColor:'#8b949e', borderColor:'#30363d', borderWidth:1, callbacks: { label: ctx => `${ctx.dataset.label}: $${ctx.raw.toFixed(0)}` } } },
+      scales: {
+        x: { ticks: { color:'#8b949e', maxTicksLimit:8, font:{size:9} }, grid: { color:'rgba(48,54,61,0.4)' } },
+        y: { ticks: { color:'#8b949e', callback: v=>`$${v.toFixed(0)}`, font:{size:9} }, grid: { color:'rgba(48,54,61,0.4)' } }
+      }
+    }
+  });
+
+  // Monte Carlo chart
+  if (mc) {
+    document.getElementById('bt-mc-panel').classList.remove('hidden');
+    const mcColor = mc.profitablePct >= 70 ? '#3fb950' : mc.profitablePct >= 50 ? '#f9c513' : '#f85149';
+    document.getElementById('bt-mc-p5').textContent = `${mc.p5>=0?'+':''}${mc.p5.toFixed(1)}%`;
+    document.getElementById('bt-mc-p5').style.color = mc.p5>=0?colGreen:colRed;
+    document.getElementById('bt-mc-p50').textContent = `${mc.p50>=0?'+':''}${mc.p50.toFixed(1)}%`;
+    document.getElementById('bt-mc-p50').style.color = mc.p50>=0?colGreen:colRed;
+    document.getElementById('bt-mc-p95').textContent = `${mc.p95>=0?'+':''}${mc.p95.toFixed(1)}%`;
+    document.getElementById('bt-mc-p95').style.color = mc.p95>=0?colGreen:colRed;
+    document.getElementById('bt-mc-profitable').textContent = `${mc.profitablePct.toFixed(0)}%`;
+    document.getElementById('bt-mc-profitable').style.color = mcColor;
+
+    // Histogram of MC outcomes
+    const bins = 20;
+    const min = mc.all[0], max = mc.all[mc.all.length-1];
+    const binSize = (max - min) / bins;
+    const binCounts = new Array(bins).fill(0);
+    mc.all.forEach(v => {
+      const b = Math.min(bins-1, Math.floor((v - min) / binSize));
+      binCounts[b]++;
+    });
+    const binLabels = binCounts.map((_, i) => `${(min + i*binSize).toFixed(0)}%`);
+
+    if (btMcChart) btMcChart.destroy();
+    const mcCtx = document.getElementById('bt-mc-chart').getContext('2d');
+    btMcChart = new Chart(mcCtx, {
+      type: 'bar',
+      data: {
+        labels: binLabels,
+        datasets: [{
+          label: 'Simulated Outcomes',
+          data: binCounts,
+          backgroundColor: binLabels.map((l,i) => parseFloat(l) >= 0 ? 'rgba(63,185,80,0.6)' : 'rgba(248,81,73,0.6)'),
+          borderWidth: 0
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display:false }, tooltip: { backgroundColor:'#1c2333', titleColor:'#e6edf3', bodyColor:'#8b949e' } },
+        scales: {
+          x: { ticks: { color:'#8b949e', maxTicksLimit:10, font:{size:8} }, grid: { display:false } },
+          y: { ticks: { color:'#8b949e', font:{size:9} }, grid: { color:'rgba(48,54,61,0.3)' } }
+        }
+      }
+    });
+  } else {
+    document.getElementById('bt-mc-panel').classList.add('hidden');
+  }
+
+  // Trade log
+  const logEl = document.getElementById('bt-trade-log');
+  if (!trades.length) {
+    logEl.innerHTML = '<div class="text-gray-500 py-2">No trades triggered in this period. Strategy may need more data or different market conditions.</div>';
+  } else {
+    logEl.innerHTML = `
+      <table class="w-full" style="border-collapse:collapse;">
+        <thead><tr class="text-gray-500" style="border-bottom:1px solid var(--border);">
+          <th class="text-left py-1 pr-2">#</th>
+          <th class="text-left py-1 pr-2">Entry Date</th>
+          <th class="text-left py-1 pr-2">Entry $</th>
+          <th class="text-left py-1 pr-2">Exit Date</th>
+          <th class="text-left py-1 pr-2">Exit $</th>
+          <th class="text-left py-1 pr-2">Days</th>
+          <th class="text-left py-1 pr-2">Reason</th>
+          <th class="text-right py-1">P&L</th>
+        </tr></thead>
+        <tbody>
+          ${trades.map((t,i) => `
+            <tr style="border-bottom:1px solid rgba(48,54,61,0.4);">
+              <td class="py-1 pr-2 text-gray-500">${i+1}</td>
+              <td class="py-1 pr-2">${t.date}</td>
+              <td class="py-1 pr-2">$${t.entry.toFixed(2)}</td>
+              <td class="py-1 pr-2">${t.exitDate}</td>
+              <td class="py-1 pr-2">$${t.exit.toFixed(2)}</td>
+              <td class="py-1 pr-2">${t.holdDays}</td>
+              <td class="py-1 pr-2 text-gray-400">${t.exitReason}</td>
+              <td class="py-1 text-right font-bold" style="color:${t.pnl>=0?'var(--green)':'var(--red)'}">
+                ${t.pnl>=0?'+':''}$${t.pnl.toFixed(2)}
+              </td>
+            </tr>`).join('')}
+        </tbody>
+      </table>`;
+  }
+
+  // Interpretation text
+  const strat = STRATEGIES.find(s => s.key === stratKey);
+  const beat = stratReturnPct > bahReturn;
+  const sharpeInterp = sharpe >= 2 ? 'Excellent (institutional-grade)' : sharpe >= 1 ? 'Good (hedge fund target)' : sharpe >= 0.5 ? 'Acceptable' : 'Poor — risk not rewarded';
+  const pfInterp = pf >= 2 ? 'Strong edge' : pf >= 1.5 ? 'Positive edge' : pf >= 1 ? 'Marginal edge' : 'Negative edge — losses exceed wins';
+
+  document.getElementById('bt-explanation').innerHTML = `
+    <div class="fredoka text-base mb-3" style="color:var(--gold)">📊 How to Read These Results</div>
+    <div class="space-y-2 text-xs leading-relaxed text-gray-300">
+      <p><strong style="color:var(--accent)">Alpha ${alpha>=0?'+':''}${alpha.toFixed(1)}%:</strong> ${beat ? `This strategy outperformed buy-and-hold by ${Math.abs(alpha).toFixed(1)}%. That's meaningful IF reliability is high.` : `This strategy underperformed buy-and-hold by ${Math.abs(alpha).toFixed(1)}%. For this symbol/period, simply holding was better.`}</p>
+      <p><strong style="color:var(--accent)">Sharpe ${sharpe.toFixed(2)}:</strong> ${sharpeInterp}. Measures return per unit of risk. Below 0.5 = strategy takes too much risk for the return.</p>
+      <p><strong style="color:var(--accent)">Profit Factor ${pf>=99?'∞':pf.toFixed(2)}:</strong> ${pfInterp}. A PF > 1.5 with 20+ trades is a genuine signal of edge.</p>
+      <p><strong style="color:var(--accent)">Win Rate ${winRate.toFixed(0)}%:</strong> Note that win rate alone doesn't determine profitability — a 40% win rate with 3:1 winners is better than 60% win rate with 1:3 winners. The expectancy ratio (${expectancy>=99?'∞':expectancy.toFixed(2)}x) tells the full story.</p>
+      <p><strong style="color:var(--accent)">Max Drawdown -${maxDD.toFixed(1)}%:</strong> This is the hardest number psychologically. At this drawdown, could you hold without panic-selling? Most people can't handle more than 20%.</p>
+      ${mc ? `<p><strong style="color:var(--accent)">Monte Carlo:</strong> ${mc.profitablePct.toFixed(0)}% of 200 shuffled-order simulations were profitable. ${mc.profitablePct >= 70 ? 'High consistency — results appear robust.' : mc.profitablePct >= 50 ? 'Moderate consistency — some sequence dependency.' : 'Low consistency — results may be heavily sequence-dependent (lucky ordering).'} Worst-case 5th percentile: ${mc.p5.toFixed(1)}%.</p>` : ''}
+      <p class="pt-2" style="color:var(--red);border-top:1px solid var(--border);">⚠️ <strong>Critical limitations:</strong> (1) This is ONE symbol in ONE market regime. Run on 5–10 symbols across different sectors. (2) Survivorship bias: you picked a stock that still exists. (3) Daily candles only — real intraday slippage can be worse. (4) Past performance does not guarantee future results. This tool is for education and hypothesis testing, not trading signals.</p>
+    </div>`;
+}
+
+// =====================================================================
+// MAGIC MONEY TREES PANEL
+// =====================================================================
+window._divCache = {};
+
+async function loadAllTreeData() {
+  const container = document.getElementById('trees-container');
+  container.innerHTML = '<div class="text-center py-8 col-span-full"><div class="spinner mx-auto"></div><div class="text-sm text-gray-400 mt-3">Checking for magic trees... 🌱</div></div>';
+
+  const results = [];
+  for (const sym of watchlist) {
+    try {
+      const [q, divs, metric] = await Promise.all([
+        fetchQuote(sym),
+        fetchDividends(sym),
+        fetchMetric(sym)
+      ]);
+
+      const price = q?.c || prices[sym]?.price || 0;
+      const lastYearDivs = divs ? divs.filter(d => new Date(d.exDate) > new Date(Date.now() - 365*86400*1000)) : [];
+      const annualDiv = lastYearDivs.reduce((s,d) => s + (d.amount||0), 0);
+      const divYield = price > 0 ? (annualDiv / price) * 100 : 0;
+      const lastDiv = lastYearDivs.sort((a,b) => new Date(b.exDate)-new Date(a.exDate))[0];
+      const quarterlyDiv = annualDiv / 4;
+
+      // Estimate next pay date
+      let nextPayEstimate = '--';
+      if (lastDiv) {
+        const lastPay = new Date(lastDiv.payDate || lastDiv.exDate);
+        const nextPay = new Date(lastPay.getTime() + 90*86400*1000);
+        nextPayEstimate = nextPay.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+      }
+
+      // Cache for snack meter
+      window._divCache[sym] = { annual: annualDiv, quarterly: quarterlyDiv, yield: divYield };
+
+      const isTree = divYield > 2.5;
+      results.push({
+        sym, price, divYield, annualDiv, quarterlyDiv,
+        lastExDate: lastDiv?.exDate || '--',
+        nextPayEstimate,
+        isTree,
+        name: metric?.profile2?.name || sym
+      });
+      await new Promise(r => setTimeout(r, 300)); // Rate limit
+    } catch(e) {
+      results.push({ sym, price: prices[sym]?.price || 0, divYield: 0, annualDiv: 0, quarterlyDiv: 0, lastExDate:'--', nextPayEstimate:'--', isTree:false });
+    }
+  }
+
+  container.innerHTML = results.map(r => `
+    <div class="panel" style="${r.isTree ? 'border-color:var(--gold);box-shadow:0 0 20px rgba(255,215,0,0.1);' : ''}">
+      <div class="flex items-start justify-between mb-2">
+        <div>
+          <div class="fredoka text-xl">${r.isTree ? '🌳' : '🌱'} ${r.sym}</div>
+          <div class="text-xs text-gray-400">${r.name || r.sym}</div>
+        </div>
+        ${r.isTree ? '<span class="signal-badge sig-tree tree-glow">Magic Tree!</span>' : '<span class="signal-badge sig-none">Sapling</span>'}
+      </div>
+      <div class="grid grid-cols-2 gap-2 text-sm mb-3">
+        <div><div class="text-xs text-gray-500">Price</div><div class="font-bold">$${r.price.toFixed(2)}</div></div>
+        <div><div class="text-xs text-gray-500">Div Yield 🍪</div><div class="font-bold" style="color:${r.divYield > 2.5 ? 'var(--gold)' : '#8b949e'}">${r.divYield.toFixed(2)}%</div></div>
+        <div><div class="text-xs text-gray-500">Annual Snacks</div><div class="font-bold">$${r.annualDiv.toFixed(2)}/share</div></div>
+        <div><div class="text-xs text-gray-500">Quarterly</div><div class="font-bold">$${r.quarterlyDiv.toFixed(2)}/share</div></div>
+        <div><div class="text-xs text-gray-500">Last Ex-Date</div><div class="text-xs">${r.lastExDate}</div></div>
+        <div><div class="text-xs text-gray-500">Est. Next Pay</div><div class="text-xs">${r.nextPayEstimate}</div></div>
+      </div>
+      ${r.isTree ? `<div class="text-xs p-2 rounded-lg" style="background:rgba(255,215,0,0.1);color:var(--gold);">
+        🌳 This is a Magic Money Tree! For every 10 shares you own, you'd earn about $${(r.quarterlyDiv*10).toFixed(2)} every 3 months just for holding it! Like getting allowance from a tree! 🎉
+      </div>` : `<div class="text-xs text-gray-500">This sapling doesn't drop many snacks yet. Yield needs to be >2.5% to be a Magic Money Tree! Keep an eye on it. 🌱</div>`}
+    </div>`).join('');
+
+  // Re-render positions with updated snack data
+  renderPositions();
+}
+
+async function checkTreeBadge() {
+  const badge = document.getElementById('tree-badge');
+  const divData = window._divCache && window._divCache[currentSymbol];
+  if (divData && divData.yield > 2.5) {
+    badge.classList.remove('hidden');
+  } else {
+    badge.classList.add('hidden');
+    // Fetch if not cached
+    try {
+      const divs = await fetchDividends(currentSymbol);
+      const price = prices[currentSymbol]?.price || 100;
+      const annualDiv = divs ? divs.filter(d => new Date(d.exDate) > new Date(Date.now() - 365*86400*1000)).reduce((s,d)=>s+(d.amount||0),0) : 0;
+      const yield_ = (annualDiv / price) * 100;
+      window._divCache[currentSymbol] = { annual: annualDiv, quarterly: annualDiv/4, yield: yield_ };
+      if (yield_ > 2.5) badge.classList.remove('hidden');
+    } catch(e) {}
+  }
+}
+
+// =====================================================================
+// TOUR
+// =====================================================================
+const TOUR_STEPS = [
+  {
+    emoji: '👋',
+    title: 'Hey there, little investor!',
+    text: 'Welcome to YOUR stock learning playground! 🎮 Stocks are like tiny pieces of a company that you can buy and sell. When the company does well, your piece becomes worth more money! Let\'s look around your toy room...',
+    highlight: null,
+    position: 'center',
+    showDisclaimer: true,
+    action: null
+  },
+  {
+    emoji: '📋',
+    title: 'This is your Toy Car List! 🚗',
+    text: 'See this list on the left? Those are your favorite companies! AAPL is Apple (they make iPhones!), TSLA is Tesla (cool electric cars!), NVDA makes computer brains, SPY is like owning a tiny piece of 500 big companies, and KO is Coca-Cola — the soda people! 🥤',
+    highlight: 'sidebar',
+    position: 'right',
+    showDisclaimer: false
+  },
+  {
+    emoji: '🎢',
+    title: 'This is the Roller Coaster Chart! 🎢',
+    text: 'See how the price goes up and down like a roller coaster? When the line goes UP 📈, the company is doing great! When it goes DOWN 📉, traders are worried. But roller coasters always go back up eventually! That\'s why we hold on tight! 🤝',
+    highlight: 'tab-chart',
+    position: 'bottom',
+    showDisclaimer: false
+  },
+  {
+    emoji: '✨',
+    title: 'Magic Clue Signals! ✨',
+    text: 'These are like secret treasure maps! 🗺️ Traders use special math tricks to find when a stock might be ready to go UP. Each strategy has a fun name like "Golden Cross Hug" or "Bouncy Ball". Click the Signals tab to see them all!',
+    highlight: 'tab-signals',
+    position: 'bottom',
+    showDisclaimer: false
+  },
+  {
+    emoji: '💰',
+    title: 'Your Pretend Piggy Bank! 🐷',
+    text: 'You get $10,000 of PRETEND money to practice with! Don\'t worry — it\'s not real money! You can buy pretend stock, sell it, and see if you would have made money. It\'s like Monopoly, but with real stock prices! 🎲',
+    highlight: null,
+    position: 'center',
+    showDisclaimer: true
+  },
+  {
+    emoji: '🌳',
+    title: 'Magic Money Trees! 🌳',
+    text: 'Some companies are SO nice that they share their profits with you! These are called DIVIDENDS. It\'s like if your tree dropped apples for you every 3 months — just for owning it! Coca-Cola (KO) is famous for being a Magic Money Tree! 🍎💵',
+    highlight: null,
+    position: 'center',
+    showDisclaimer: false
+  },
+  {
+    emoji: '🔍',
+    title: 'Let\'s find the BEST move together! 🕵️',
+    text: 'I\'m going to scan all your toy cars right now and look for magic signals AND money trees! Then I\'ll help you make your very first pretend trade! Hold on... checking the secret treasure maps... 🗺️',
+    highlight: null,
+    position: 'center',
+    showDisclaimer: true,
+    action: 'scan'
+  },
+  {
+    emoji: '🎉',
+    title: 'YOU ARE A STOCK CHAMPION! 🏆',
+    text: 'Amazing job! You learned about watchlists, charts, signals, dividends, AND made a pretend trade! You\'re already thinking like a smart investor! 🌟 Keep practicing every day and someday you\'ll be amazing with real money (with a grown-up\'s help!). Remember: BE PATIENT, BE CURIOUS, KEEP LEARNING! 💪',
+    highlight: null,
+    position: 'center',
+    showDisclaimer: true,
+    action: 'confetti'
+  }
+];
+
+let scanResult = null;
+
+async function scanBestSignal() {
+  const box = document.getElementById('tour-text');
+  box.innerHTML = `<div class="text-center"><div class="spinner mx-auto mb-3"></div><div>Checking ${watchlist.length} stocks for magic signals...</div></div>`;
+
+  let best = null;
+  let bestStrength = 0;
+
+  for (const sym of watchlist) {
+    try {
+      const candles = await fetchCandles(sym, 90);
+      if (!candles) continue;
+
+      // Check price strategies
+      for (const strat of STRATEGIES.filter(s => s.key !== 'money_tree')) {
+        const result = getStrategySignal(strat.key, candles);
+        if (result && result.signal === 'BUY' && result.strength > bestStrength) {
+          best = { sym, strat, result, candles, isTree: false };
+          bestStrength = result.strength;
+        }
+      }
+
+      // Check money tree
+      const divs = await fetchDividends(sym);
+      const price = prices[sym]?.price || candles.c[candles.c.length-1];
+      const annualDiv = divs ? divs.filter(d => new Date(d.exDate) > new Date(Date.now() - 365*86400*1000)).reduce((s,d)=>s+(d.amount||0),0) : 0;
+      const divYield = (annualDiv / price) * 100;
+      window._divCache[sym] = { annual: annualDiv, quarterly: annualDiv/4, yield: divYield };
+
+      const sma200 = calcSMA(candles.c, 200);
+      const lastClose = candles.c[candles.c.length-1];
+      const aboveSMA200 = sma200[sma200.length-1] && lastClose > sma200[sma200.length-1];
+
+      if (divYield > 2.5 && aboveSMA200) {
+        const treeStrength = 85 + (divYield > 4 ? 10 : divYield > 3 ? 5 : 0);
+        if (treeStrength > bestStrength) {
+          best = {
+            sym,
+            strat: { key:'money_tree', name:'🌳 Magic Money Tree Grow' },
+            result: { signal:'TREE', strength: treeStrength, kid:'this one!' },
+            candles,
+            isTree: true,
+            divYield,
+            quarterlyDiv: annualDiv/4
+          };
+          bestStrength = treeStrength;
+        }
+      }
+
+      await new Promise(r => setTimeout(r, 200));
+    } catch(e) {}
+  }
+
+  scanResult = best;
+
+  if (best) {
+    const price = prices[best.sym]?.price || best.candles.c[best.candles.c.length-1];
+    if (best.isTree) {
+      box.innerHTML = `
+        <div class="p-3 rounded-xl mb-3" style="background:rgba(255,215,0,0.1);border:1px solid var(--gold);">
+          <div class="fredoka text-xl mb-2" style="color:var(--gold)">🌳 ${best.sym} is a Magic Money Tree!</div>
+          <p>Dividend yield is <strong style="color:var(--gold)">${best.divYield.toFixed(2)}%</strong> — that means for every $100 you "own", the tree drops $${best.divYield.toFixed(2)} of snack money every year! 🍪</p>
+          <p class="mt-2">💵 If you "bought" 10 pretend shares at $${price.toFixed(2)} each, you'd get about <strong style="color:var(--gold)">$${(best.quarterlyDiv*10).toFixed(2)}</strong> of pretend snack money every 3 months!</p>
+          <p class="mt-2">AND the price is above its 200-day average — the tree is healthy AND giving snacks! Double win! 🎉</p>
+        </div>
+        <p class="text-sm">Want me to help you "plant" this tree in your pretend portfolio? Let's do it! 👇</p>`;
+    } else {
+      box.innerHTML = `
+        <div class="p-3 rounded-xl mb-3" style="background:rgba(88,166,255,0.1);border:1px solid var(--accent);">
+          <div class="fredoka text-xl mb-2" style="color:var(--accent)">${best.strat.name} spotted on ${best.sym}! 💡</div>
+          <p>${best.result.kid}</p>
+          <p class="mt-2">Current price: <strong>$${price.toFixed(2)}</strong> | Signal strength: <strong style="color:var(--gold)">${best.result.strength}%</strong></p>
+        </div>
+        <p class="text-sm">Want me to walk you through a pretend trade? Let's go! 👇</p>`;
+    }
+  } else {
+    box.innerHTML = `<p>Hmm, the markets are quiet right now — no super strong signals today! 🤔 That's totally normal! Sometimes the best move is to wait and watch. Patient investors WIN! 🏆 </p>`;
+  }
+}
+
+async function executeTourTrade() {
+  if (!scanResult) return;
+  const price = prices[scanResult.sym]?.price || scanResult.candles.c[scanResult.candles.c.length - 1];
+  const shares = Math.floor(500 / price); // Buy ~$500 worth
+
+  if (shares < 1) return;
+
+  // Switch to symbol
+  currentSymbol = scanResult.sym;
+  renderWatchlist();
+
+  const total = price * shares;
+  if (portfolio.cash >= total) {
+    portfolio.cash -= total;
+    if (!portfolio.positions[scanResult.sym]) {
+      portfolio.positions[scanResult.sym] = { shares:0, avgCost:0, stop:null, target:null };
+    }
+    const pos = portfolio.positions[scanResult.sym];
+    pos.avgCost = (pos.avgCost * pos.shares + price * shares) / (pos.shares + shares);
+    pos.shares += shares;
+    portfolio.history.push({ type:'BUY', symbol: scanResult.sym, shares, price, total, time: Date.now() });
+    portfolio.snackTimers = portfolio.snackTimers || {};
+    portfolio.snackTimers[scanResult.sym] = { lastPay: Date.now() };
+    savePortfolio();
+
+    const msgEl = document.getElementById('tour-action');
+    msgEl.innerHTML = `<div class="p-3 rounded-xl" style="background:rgba(63,185,80,0.15);border:1px solid var(--green);">
+      <div class="fredoka" style="color:var(--green)">✅ Done! You pretend-bought ${shares} shares of ${scanResult.sym} for $${total.toFixed(2)}!</div>
+      <div class="text-xs mt-1 text-gray-300">It's in your pretend portfolio now! Click the Portfolio tab anytime to see it! 💼</div>
+    </div>`;
+    const btn = document.getElementById('tour-next-btn');
+    btn.textContent = 'See the fireworks! 🎉';
+  }
+}
+
+function startTour() {
+  tourStep = 0;
+  scanResult = null;
+  renderTourStep();
+}
+
+function renderTourStep() {
+  const step = TOUR_STEPS[tourStep];
+  const overlay = document.getElementById('tour-overlay');
+  const box = document.getElementById('tour-box');
+  overlay.style.display = 'block';
+  box.style.display = 'block';
+
+  // Position box
+  const pos = step.position || 'center';
+  box.style.cssText = '';
+  if (pos === 'center') {
+    box.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);z-index:9001;background:#1c2333;border:2px solid var(--gold);border-radius:18px;padding:24px 28px;max-width:420px;width:90%;box-shadow:0 0 40px rgba(255,215,0,0.3);';
+  } else if (pos === 'right') {
+    box.style.cssText = 'position:fixed;top:50%;left:240px;transform:translateY(-50%);z-index:9001;background:#1c2333;border:2px solid var(--gold);border-radius:18px;padding:24px 28px;max-width:380px;width:90%;box-shadow:0 0 40px rgba(255,215,0,0.3);';
+  } else if (pos === 'bottom') {
+    box.style.cssText = 'position:fixed;top:200px;left:50%;transform:translateX(-50%);z-index:9001;background:#1c2333;border:2px solid var(--gold);border-radius:18px;padding:24px 28px;max-width:420px;width:90%;box-shadow:0 0 40px rgba(255,215,0,0.3);';
+  }
+
+  document.getElementById('tour-step-indicator').textContent = `Step ${tourStep+1} of ${TOUR_STEPS.length}`;
+  document.getElementById('tour-emoji').textContent = step.emoji;
+  document.getElementById('tour-title').textContent = step.title;
+  document.getElementById('tour-text').innerHTML = step.text;
+  document.getElementById('tour-action').innerHTML = '';
+  document.getElementById('tour-disclaimer').style.display = step.showDisclaimer ? 'block' : 'none';
+  document.getElementById('tour-prev-btn').style.display = tourStep > 0 ? 'inline-block' : 'none';
+
+  // Remove previous highlight
+  if (tourHighlightEl) {
+    tourHighlightEl.classList.remove('tour-highlight', 'pulse-ring');
+    tourHighlightEl = null;
+  }
+
+  // Highlight element
+  if (step.highlight) {
+    const el = document.getElementById(step.highlight);
+    if (el) {
+      el.classList.add('tour-highlight', 'pulse-ring');
+      tourHighlightEl = el;
+    }
+  }
+
+  const nextBtn = document.getElementById('tour-next-btn');
+  if (tourStep === TOUR_STEPS.length - 1) {
+    nextBtn.textContent = '🎉 Done!';
+  } else if (step.action === 'scan') {
+    nextBtn.textContent = 'Find the best move! 🔍';
+  } else {
+    nextBtn.textContent = 'Next →';
+  }
+
+  // Run action
+  if (step.action === 'confetti') {
+    launchConfetti();
+  }
+}
+
+async function tourNext() {
+  const step = TOUR_STEPS[tourStep];
+
+  // Special scan step
+  if (step.action === 'scan') {
+    const nextBtn = document.getElementById('tour-next-btn');
+    nextBtn.disabled = true;
+    nextBtn.textContent = '🔍 Scanning...';
+    await scanBestSignal();
+    nextBtn.disabled = false;
+    // Add trade button
+    if (scanResult) {
+      const price = prices[scanResult.sym]?.price || scanResult.candles.c[scanResult.candles.c.length-1];
+      const shares = Math.floor(500 / price);
+      document.getElementById('tour-action').innerHTML = `
+        <button class="btn btn-green w-full" onclick="executeTourTrade()">
+          🛒 Yes! Pretend-buy ${shares > 0 ? shares : 1} share${shares>1?'s':''} of ${scanResult.sym}!
+        </button>`;
+      nextBtn.textContent = 'Next →';
+    } else {
+      tourStep++;
+      renderTourStep();
+    }
+    return;
+  }
+
+  if (tourStep < TOUR_STEPS.length - 1) {
+    tourStep++;
+    renderTourStep();
+  } else {
+    skipTour();
+  }
+}
+
+function tourPrev() {
+  if (tourStep > 0) { tourStep--; renderTourStep(); }
+}
+
+function skipTour() {
+  document.getElementById('tour-overlay').style.display = 'none';
+  document.getElementById('tour-box').style.display = 'none';
+  if (tourHighlightEl) {
+    tourHighlightEl.classList.remove('tour-highlight','pulse-ring');
+    tourHighlightEl = null;
+  }
+}
+
+function launchConfetti() {
+  const colors = ['#ffd700','#58a6ff','#3fb950','#f85149','#ff9900','#9467bd','#ffffff'];
+  for (let i = 0; i < 80; i++) {
+    const el = document.createElement('div');
+    el.className = 'confetti-piece';
+    el.style.left = Math.random() * 100 + 'vw';
+    el.style.background = colors[Math.floor(Math.random() * colors.length)];
+    el.style.width = (Math.random() * 10 + 5) + 'px';
+    el.style.height = (Math.random() * 10 + 5) + 'px';
+    el.style.animationDuration = (Math.random() * 2 + 1.5) + 's';
+    el.style.animationDelay = (Math.random() * 1) + 's';
+    el.style.borderRadius = Math.random() > 0.5 ? '50%' : '2px';
+    document.body.appendChild(el);
+    setTimeout(() => el.remove(), 4000);
+  }
+}
+
+// =====================================================================
+// TABS
+// =====================================================================
+function switchTab(btn, tabId) {
+  document.querySelectorAll('.tab-btn[data-tab]').forEach(b => b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.tab-content').forEach(t => t.classList.add('hidden'));
+  document.getElementById(`tab-${tabId}`).classList.remove('hidden');
+
+  if (tabId === 'signals') runSignals();
+  if (tabId === 'portfolio') renderPortfolio();
+  if (tabId === 'trees') loadAllTreeData();
+}
+
+// =====================================================================
+// API KEY MANAGEMENT
+// =====================================================================
+function saveApiKey() {
+  const key = document.getElementById('api-key-input').value.trim();
+  if (!key) { document.getElementById('api-error').textContent = '⚠️ Please enter your API key!'; document.getElementById('api-error').classList.remove('hidden'); return; }
+  API_KEY = key;
+  localStorage.setItem('sgka_api_key', key);
+  initApp();
+}
+
+function changeApiKey() {
+  localStorage.removeItem('sgka_api_key');
+  API_KEY = '';
+  document.getElementById('api-setup').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+
+// =====================================================================
+// INIT
+// =====================================================================
+async function initApp() {
+  document.getElementById('api-setup').style.display = 'none';
+  document.getElementById('app').style.display = 'flex';
+  renderWatchlist();
+  renderPortfolio();
+  connectWebSocket();
+
+  // Initial quotes
+  for (const sym of watchlist) {
+    const q = await fetchQuote(sym);
+    if (q && q.c) {
+      prices[sym] = { price: q.c };
+      updateWatchlistPrice(sym, q.c, null);
+    }
+    await new Promise(r => setTimeout(r, 100));
+  }
+  localStorage.setItem('sgka_prices', JSON.stringify(prices));
+
+  await selectSymbol(currentSymbol);
+
+  // Start tour automatically
+  setTimeout(() => startTour(), 800);
+}
+
+window.onload = () => {
+  const savedKey = localStorage.getItem('sgka_api_key');
+  if (savedKey) {
+    API_KEY = savedKey;
+    document.getElementById('api-key-input').value = savedKey;
+    initApp();
+  } else {
+    document.getElementById('api-setup').style.display = 'flex';
+  }
+};
 </script>
 </body>
 </html>
